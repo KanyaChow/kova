@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -13,77 +8,91 @@ if TYPE_CHECKING:
     from mewcode.agents.parser import AgentDef
     from mewcode.teams.manager import TeamManager
 
-ALL_AGENT_DISALLOWED_TOOLS: frozenset[str] = frozenset({
-    "TaskOutput",
-    "ExitPlanMode",
-    "EnterPlanMode",
-    "Agent",
-    "AskUserQuestion",
-    "TaskStop",
-    "Workflow",
-})
-
-CUSTOM_AGENT_DISALLOWED_TOOLS: frozenset[str] = frozenset({
-    "TaskOutput",
-    "ExitPlanMode",
-    "EnterPlanMode",
-    "Agent",
-    "AskUserQuestion",
-    "TaskStop",
-    "Workflow",
-})
-
-ASYNC_AGENT_ALLOWED_TOOLS: frozenset[str] = frozenset({
-    "ReadFile",
-    "WebSearch",
-    "TodoWrite",
-    "Grep",
-    "WebFetch",
-    "Glob",
-    "Bash",
-    "EditFile",
-    "WriteFile",
-    "NotebookEdit",
-    "Skill",
-    "LoadSkill",
-    "SyntheticOutput",
-    "ToolSearch",
-    "EnterWorktree",
-    "ExitWorktree",
-})
-
-TEAMMATE_COORDINATION_TOOLS: frozenset[str] = frozenset({
-    "TaskCreate",
-    "TaskGet",
-    "TaskList",
-    "TaskUpdate",
-    "SendMessage",
-})
-
-IN_PROCESS_TEAMMATE_ALLOWED_TOOLS: frozenset[str] = (
-    ASYNC_AGENT_ALLOWED_TOOLS | TEAMMATE_COORDINATION_TOOLS | frozenset({
-        "CronCreate",
-        "CronDelete",
-        "CronList",
-    })
+ALL_AGENT_DISALLOWED_TOOLS: frozenset[str] = frozenset(
+    {
+        "TaskOutput",
+        "ExitPlanMode",
+        "EnterPlanMode",
+        "Agent",
+        "AskUserQuestion",
+        "TaskStop",
+        "Workflow",
+    }
 )
 
-COORDINATOR_MODE_ALLOWED_TOOLS: frozenset[str] = frozenset({
-    "Agent",
-    "SendMessage",
-    "TaskCreate",
-    "TaskGet",
-    "TaskList",
-    "TaskUpdate",
-    "TaskStop",
-    "SyntheticOutput",
-    "TeamCreate",
-    "TeamDelete",
-    "ReadFile",
-    "Glob",
-    "Grep",
-    "Bash",
-})
+CUSTOM_AGENT_DISALLOWED_TOOLS: frozenset[str] = frozenset(
+    {
+        "TaskOutput",
+        "ExitPlanMode",
+        "EnterPlanMode",
+        "Agent",
+        "AskUserQuestion",
+        "TaskStop",
+        "Workflow",
+    }
+)
+
+ASYNC_AGENT_ALLOWED_TOOLS: frozenset[str] = frozenset(
+    {
+        "ReadFile",
+        "WebSearch",
+        "TodoWrite",
+        "Grep",
+        "WebFetch",
+        "Glob",
+        "Bash",
+        "EditFile",
+        "WriteFile",
+        "NotebookEdit",
+        "Skill",
+        "LoadSkill",
+        "SyntheticOutput",
+        "ToolSearch",
+        "EnterWorktree",
+        "ExitWorktree",
+    }
+)
+
+TEAMMATE_COORDINATION_TOOLS: frozenset[str] = frozenset(
+    {
+        "TaskCreate",
+        "TaskGet",
+        "TaskList",
+        "TaskUpdate",
+        "SendMessage",
+    }
+)
+
+IN_PROCESS_TEAMMATE_ALLOWED_TOOLS: frozenset[str] = (
+    ASYNC_AGENT_ALLOWED_TOOLS
+    | TEAMMATE_COORDINATION_TOOLS
+    | frozenset(
+        {
+            "CronCreate",
+            "CronDelete",
+            "CronList",
+        }
+    )
+)
+
+COORDINATOR_MODE_ALLOWED_TOOLS: frozenset[str] = frozenset(
+    {
+        "Agent",
+        "SendMessage",
+        "TaskCreate",
+        "TaskGet",
+        "TaskList",
+        "TaskUpdate",
+        "TaskStop",
+        "SyntheticOutput",
+        "TeamCreate",
+        "TeamDelete",
+        "ReadFile",
+        "Glob",
+        "Grep",
+        "Bash",
+    }
+)
 
 
 def _is_mcp_tool(name: str) -> bool:
@@ -99,7 +108,9 @@ def resolve_agent_tools(
 
     # 第 0 层：MCP 工具始终放行，先分离出来再做后续过滤
     mcp_tools = {name: tool for name, tool in all_tools.items() if _is_mcp_tool(name)}
-    all_tools = {name: tool for name, tool in all_tools.items() if not _is_mcp_tool(name)}
+    all_tools = {
+        name: tool for name, tool in all_tools.items() if not _is_mcp_tool(name)
+    }
 
     # 第 1 层：全局禁用工具
     for name in ALL_AGENT_DISALLOWED_TOOLS:
@@ -126,9 +137,7 @@ def resolve_agent_tools(
     if definition.tools:
         allowed_set = set(definition.tools)
         all_tools = {
-            name: tool
-            for name, tool in all_tools.items()
-            if name in allowed_set
+            name: tool for name, tool in all_tools.items() if name in allowed_set
         }
 
     filtered = ToolRegistry()
@@ -175,9 +184,7 @@ def build_teammate_tools(
         if definition.tools:
             allowed_set = set(definition.tools) | TEAMMATE_COORDINATION_TOOLS
             filtered = {
-                name: tool
-                for name, tool in filtered.items()
-                if name in allowed_set
+                name: tool for name, tool in filtered.items() if name in allowed_set
             }
 
     coordination_tools = [

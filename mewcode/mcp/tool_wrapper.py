@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 from typing import Any
@@ -73,14 +69,11 @@ class MCPToolWrapper(Tool):
         self.category = "command"
         self.is_concurrency_safe = False
         self.should_defer = True
-        self.params_model = _build_params_model(
-            tool_def.name, tool_def.inputSchema
-        )
+        self.params_model = _build_params_model(tool_def.name, tool_def.inputSchema)
 
     @property
     def mcp_tool_name(self) -> str:
         return self._tool_def.name
-
 
     def get_schema(self) -> dict[str, Any]:
         return {
@@ -88,7 +81,6 @@ class MCPToolWrapper(Tool):
             "description": self.description,
             "input_schema": self._tool_def.inputSchema,
         }
-
 
     async def execute(self, params: BaseModel) -> ToolResult:
         if not self._client.is_alive:

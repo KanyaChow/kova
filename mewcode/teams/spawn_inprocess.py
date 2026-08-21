@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import asyncio
@@ -103,7 +99,6 @@ class InProcessTeammateHandle:
         self.name = name
         self.progress = progress
 
-
     @property
     def done(self) -> bool:
         return self.task.done()
@@ -116,7 +111,6 @@ class InProcessTeammateHandle:
             except (asyncio.CancelledError, Exception):
                 return None
         return None
-
 
     def cancel(self) -> None:
         if not self.task.done():
@@ -173,6 +167,7 @@ def spawn_inprocess_teammate(
                 conv = conversation
             else:
                 from mewcode.conversation import ConversationManager as CM
+
                 conv = CM()
 
             next_prompt = prompt
@@ -188,11 +183,15 @@ def spawn_inprocess_teammate(
                 # 执行一个完整的 agent turn
                 if next_prompt:
                     result = await agent.run_to_completion(
-                        next_prompt, conv, event_callback=_on_event,
+                        next_prompt,
+                        conv,
+                        event_callback=_on_event,
                     )
                 else:
                     result = await agent.run_to_completion(
-                        "", conv, event_callback=_on_event,
+                        "",
+                        conv,
+                        event_callback=_on_event,
                     )
                 next_prompt = ""
 
@@ -218,7 +217,8 @@ def spawn_inprocess_teammate(
 
                 # 轮询等待 lead 下发新任务或 shutdown 指令
                 new_prompt, shutdown = await _wait_for_next_prompt_or_shutdown(
-                    mailbox, name,
+                    mailbox,
+                    name,
                 )
                 if shutdown:
                     progress.status = "completed"

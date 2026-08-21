@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 import re
@@ -19,19 +14,76 @@ _DANGEROUS_PATTERNS: list[tuple[re.Pattern[str], str]] = [
 ]
 
 
-_SAFE_COMMANDS = frozenset({
-    "ls", "dir", "pwd", "echo", "cat", "head", "tail", "wc",
-    "find", "which", "whereis", "whoami", "hostname", "uname",
-    "date", "cal", "uptime", "df", "du", "free", "env", "printenv",
-    "file", "stat", "readlink", "realpath", "basename", "dirname",
-    "sort", "uniq", "tr", "cut", "awk", "sed", "grep", "egrep", "fgrep",
-    "diff", "comm", "tee", "xargs", "true", "false", "test",
-    "git status", "git log", "git diff", "git show", "git branch",
-    "git tag", "git remote", "git rev-parse", "git ls-files",
-    "git blame", "git stash list", "go version", "go env",
-    "node -v", "npm -v", "npx", "python --version", "pip list",
-    "cargo --version", "rustc --version", "java -version", "java --version",
-})
+_SAFE_COMMANDS = frozenset(
+    {
+        "ls",
+        "dir",
+        "pwd",
+        "echo",
+        "cat",
+        "head",
+        "tail",
+        "wc",
+        "find",
+        "which",
+        "whereis",
+        "whoami",
+        "hostname",
+        "uname",
+        "date",
+        "cal",
+        "uptime",
+        "df",
+        "du",
+        "free",
+        "env",
+        "printenv",
+        "file",
+        "stat",
+        "readlink",
+        "realpath",
+        "basename",
+        "dirname",
+        "sort",
+        "uniq",
+        "tr",
+        "cut",
+        "awk",
+        "sed",
+        "grep",
+        "egrep",
+        "fgrep",
+        "diff",
+        "comm",
+        "tee",
+        "xargs",
+        "true",
+        "false",
+        "test",
+        "git status",
+        "git log",
+        "git diff",
+        "git show",
+        "git branch",
+        "git tag",
+        "git remote",
+        "git rev-parse",
+        "git ls-files",
+        "git blame",
+        "git stash list",
+        "go version",
+        "go env",
+        "node -v",
+        "npm -v",
+        "npx",
+        "python --version",
+        "pip list",
+        "cargo --version",
+        "rustc --version",
+        "java -version",
+        "java --version",
+    }
+)
 
 
 def is_safe_command(command: str) -> bool:
@@ -48,14 +100,11 @@ def is_safe_command(command: str) -> bool:
 
 
 class DangerousCommandDetector:
-
-
     def __init__(self, extra_patterns: list[tuple[str, str]] | None = None) -> None:
         self._patterns = list(_DANGEROUS_PATTERNS)
         if extra_patterns:
             for regex_str, reason in extra_patterns:
                 self._patterns.append((re.compile(regex_str), reason))
-
 
     def detect(self, command: str) -> tuple[bool, str]:
         for pattern, reason in self._patterns:

@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import json
@@ -111,7 +107,7 @@ class ConversationManager:
         """
         if self.baseline_tokens <= 0:
             return estimate_tokens(self.history)
-        tail = self.history[self.anchor_count:]
+        tail = self.history[self.anchor_count :]
         return self.baseline_tokens + estimate_tokens(tail)
 
     def add_user_message(self, content: str) -> None:
@@ -141,19 +137,14 @@ class ConversationManager:
         )
 
     def add_tool_results_message(self, tool_results: list[ToolResultBlock]) -> None:
-        self.history.append(
-            Message(role="user", content="", tool_results=tool_results)
-        )
-
+        self.history.append(Message(role="user", content="", tool_results=tool_results))
 
     def inject_environment(self, context: str) -> None:
         if not self.env_injected:
             self.history.insert(0, Message(role="user", content=context))
             self.env_injected = True
 
-    def inject_long_term_memory(
-        self, instructions: str, memories: str
-    ) -> None:
+    def inject_long_term_memory(self, instructions: str, memories: str) -> None:
         if self.ltm_injected:
             return
         sections: list[str] = []
@@ -195,7 +186,6 @@ class ConversationManager:
         self.baseline_tokens = 0
         self.anchor_count = 0
         self.last_input_tokens = 0
-
 
     def get_messages(self) -> list[Message]:
         return list(self.history)

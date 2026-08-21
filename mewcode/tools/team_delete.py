@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -30,11 +25,11 @@ class TeamDeleteTool(Tool):
     category = "command"
     is_concurrency_safe = False
 
-
-    def __init__(self, team_manager: TeamManager, parent_agent: Agent | None = None) -> None:
+    def __init__(
+        self, team_manager: TeamManager, parent_agent: Agent | None = None
+    ) -> None:
         self._team_manager = team_manager
         self._parent_agent = parent_agent
-
 
     async def execute(self, params: BaseModel) -> ToolResult:
         p: TeamDeleteParams = params  # type: ignore[assignment]
@@ -53,11 +48,15 @@ class TeamDeleteTool(Tool):
             # 只有在所有 Team 都被删除后才恢复全量工具，避免多 Team 场景下
             # 删掉其中一个就提前解除限制。
             if not self._team_manager.list_teams():
-                full_registry = getattr(self._parent_agent, '_full_registry', None)
+                full_registry = getattr(self._parent_agent, "_full_registry", None)
                 if full_registry is not None:
                     self._parent_agent.registry = full_registry
                     self._parent_agent._full_registry = None
                 self._parent_agent.coordinator_mode = False
-                coordinator_note = "\nCoordinator Mode deactivated: full tools restored."
+                coordinator_note = (
+                    "\nCoordinator Mode deactivated: full tools restored."
+                )
 
-        return ToolResult(output=f"Team '{p.team_name}' deleted successfully.{coordinator_note}")
+        return ToolResult(
+            output=f"Team '{p.team_name}' deleted successfully.{coordinator_note}"
+        )

@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 from textual.app import ComposeResult
@@ -33,7 +29,6 @@ class InlineAskUserWidget(Vertical, can_focus=True):
             super().__init__()
             self.answers = answers
 
-
     def __init__(self, questions: list[dict], **kwargs) -> None:
         super().__init__(id="askuser-inline", **kwargs)
         self._questions = questions
@@ -46,7 +41,6 @@ class InlineAskUserWidget(Vertical, can_focus=True):
         self._on_submit = False
         self._submit_idx = 0
 
-
     def compose(self) -> ComposeResult:
         yield Static(self._build_content(), id="askuser-content")
 
@@ -54,7 +48,9 @@ class InlineAskUserWidget(Vertical, can_focus=True):
         self.focus()
 
     def _option_count(self, q_idx: int) -> int:
-        return len(self._questions[q_idx].get("options", [])) + 1  # +1 是为 Other 选项预留的
+        return (
+            len(self._questions[q_idx].get("options", [])) + 1
+        )  # +1 是为 Other 选项预留的
 
     def _build_content(self) -> str:
         if self._on_submit:
@@ -116,7 +112,7 @@ class InlineAskUserWidget(Vertical, can_focus=True):
     def _render_nav_bar(self) -> str:
         parts = []
         for i, q in enumerate(self._questions):
-            header = q.get("header", f"Q{i+1}")
+            header = q.get("header", f"Q{i + 1}")
             check = "☑" if i in self._answered else "☐"
             if i == self._q_idx and not self._on_submit:
                 parts.append(f"[bold reverse] {header} {check} [/]")
@@ -131,7 +127,7 @@ class InlineAskUserWidget(Vertical, can_focus=True):
     def _render_submit(self) -> str:
         lines = ["\n [bold color(99)]Review your answers:[/]\n"]
         for i, q in enumerate(self._questions):
-            header = q.get("header", q.get("question", f"Q{i+1}"))
+            header = q.get("header", q.get("question", f"Q{i + 1}"))
             ans = self._answered.get(i, "")
             if ans:
                 lines.append(f"   {header}: {ans}")
@@ -164,11 +160,15 @@ class InlineAskUserWidget(Vertical, can_focus=True):
             ]
             if not selected:
                 opt = options[cursor]
-                selected = [opt.get("label", str(opt)) if isinstance(opt, dict) else str(opt)]
+                selected = [
+                    opt.get("label", str(opt)) if isinstance(opt, dict) else str(opt)
+                ]
             self._answered[self._q_idx] = ", ".join(selected)
         else:
             opt = options[cursor]
-            self._answered[self._q_idx] = opt.get("label", str(opt)) if isinstance(opt, dict) else str(opt)
+            self._answered[self._q_idx] = (
+                opt.get("label", str(opt)) if isinstance(opt, dict) else str(opt)
+            )
 
     def action_cursor_up(self) -> None:
         if self._on_submit:
@@ -210,7 +210,6 @@ class InlineAskUserWidget(Vertical, can_focus=True):
             self._q_idx -= 1
             self._refresh()
 
-
     def action_toggle(self) -> None:
         if self._on_submit:
             return
@@ -220,7 +219,9 @@ class InlineAskUserWidget(Vertical, can_focus=True):
         cursor = self._cursors[self._q_idx]
         options = q.get("options", [])
         if cursor < len(options):
-            self._selected[self._q_idx][cursor] = not self._selected[self._q_idx].get(cursor, False)
+            self._selected[self._q_idx][cursor] = not self._selected[self._q_idx].get(
+                cursor, False
+            )
             self._refresh()
 
     def action_select(self) -> None:
@@ -248,7 +249,6 @@ class InlineAskUserWidget(Vertical, can_focus=True):
                 self._on_submit = True
                 self._submit_idx = 0
                 self._refresh()
-
 
     def action_cancel(self) -> None:
         self.post_message(self.Responded(None))

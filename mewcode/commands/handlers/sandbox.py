@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 """沙箱管理命令：/sandbox
 
 提供三种模式切换：
@@ -88,7 +83,9 @@ def _enable_sandbox(ctx: CommandContext, auto_allow: bool) -> None:
     if sandbox is None:
         sandbox = create_sandbox()
         if sandbox is None:
-            ctx.ui.add_system_message("错误: 当前系统不支持沙箱（仅支持 macOS / Linux）")
+            ctx.ui.add_system_message(
+                "错误: 当前系统不支持沙箱（仅支持 macOS / Linux）"
+            )
             return
 
     if not sandbox.available():

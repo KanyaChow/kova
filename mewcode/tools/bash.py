@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 import asyncio
@@ -23,14 +18,14 @@ MAX_TIMEOUT = 600
 # 这些命令的 exit code 1 不代表错误，只有 >= 阈值才算真正的错误
 # 例如 grep 返回 1 仅表示"没有匹配行"，不是执行出错
 _COMMAND_ERROR_THRESHOLDS: dict[str, int] = {
-    "grep": 2,   # exit 1 = 没有匹配到内容
+    "grep": 2,  # exit 1 = 没有匹配到内容
     "egrep": 2,
     "fgrep": 2,
-    "rg": 2,     # ripgrep，与 grep 语义一致
-    "diff": 2,   # exit 1 = 文件内容有差异
-    "find": 2,   # exit 1 = 部分成功（如权限不足跳过某些目录）
-    "test": 2,   # exit 1 = 条件为假
-    "[": 2,      # test 的别名形式
+    "rg": 2,  # ripgrep，与 grep 语义一致
+    "diff": 2,  # exit 1 = 文件内容有差异
+    "find": 2,  # exit 1 = 部分成功（如权限不足跳过某些目录）
+    "test": 2,  # exit 1 = 条件为假
+    "[": 2,  # test 的别名形式
 }
 
 
@@ -145,7 +140,9 @@ class Bash(Tool):
         except asyncio.TimeoutError:
             proc.kill()
             await proc.wait()
-            return ToolResult(output=f"Error: command timed out after {timeout}s", is_error=True)
+            return ToolResult(
+                output=f"Error: command timed out after {timeout}s", is_error=True
+            )
         except Exception as e:
             return ToolResult(output=f"Error executing command: {e}", is_error=True)
 
@@ -166,4 +163,3 @@ class Bash(Tool):
             output = "(no output)"
 
         return ToolResult(output=output, is_error=False)
-

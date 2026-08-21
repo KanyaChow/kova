@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -78,6 +73,7 @@ async def _handle_reload(ctx: CommandContext, loader: SkillLoader) -> None:
     registry = ctx.config.get("registry")
     if registry is not None:
         from mewcode.commands.handlers.skill_register import register_skill_commands
+
         register_skill_commands(registry, loader, ctx.config.get("skill_executor"))
 
     # 刷新 agent 的 skill catalog，这样 LLM 能看到新增的 skill

@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 """
 Remote Control 服务器：通过 WebSocket 桥接 Agent 事件和 Web UI。
 
@@ -169,19 +164,23 @@ class RemoteServer:
         self._connections.add(websocket)
         try:
             # 连接建立时推送会话信息
-            await self._broadcast({
-                "type": "connected",
-                "data": {
-                    "session": self.session_id,
-                    "cwd": os.getcwd(),
-                },
-            })
+            await self._broadcast(
+                {
+                    "type": "connected",
+                    "data": {
+                        "session": self.session_id,
+                        "cwd": os.getcwd(),
+                    },
+                }
+            )
 
             # 推送命令列表
-            await self._broadcast({
-                "type": "commands",
-                "data": self._build_command_list(),
-            })
+            await self._broadcast(
+                {
+                    "type": "commands",
+                    "data": self._build_command_list(),
+                }
+            )
 
             # 消息循环
             async for raw in websocket:
@@ -249,7 +248,9 @@ class RemoteServer:
 
         # 工具注册表
         self.registry = create_default_registry()
-        self.registry.register(ToolSearchTool(self.registry, protocol=provider.protocol))
+        self.registry.register(
+            ToolSearchTool(self.registry, protocol=provider.protocol)
+        )
 
         # Skill 加载
         self.skill_loader = SkillLoader(work_dir)
@@ -281,13 +282,17 @@ class RemoteServer:
             for name, desc in catalog:
                 lines.append(f"- {name}: {desc}")
             lines.append("")
-            lines.append("If the user's request matches a Skill, call LoadSkill to activate it.")
+            lines.append(
+                "If the user's request matches a Skill, call LoadSkill to activate it."
+            )
             self.agent.set_skill_catalog("\n".join(lines))
 
         # 初始化对话管理器
         self.conversation = ConversationManager()
 
-        log.info("Agent initialized: session=%s, model=%s", self.session_id, provider.model)
+        log.info(
+            "Agent initialized: session=%s, model=%s", self.session_id, provider.model
+        )
 
     # ------------------------------------------------------------------
     # MCP 初始化
@@ -315,7 +320,8 @@ class RemoteServer:
                     section += srv_info.instructions
                 else:
                     tool_names = [
-                        t.name for t in self.registry.list_tools()
+                        t.name
+                        for t in self.registry.list_tools()
                         if t.name.startswith(f"mcp__{srv_info.name}__")
                     ]
                     if tool_names:
@@ -324,8 +330,7 @@ class RemoteServer:
             self._mcp_instructions = (
                 "# MCP Server Instructions\n\n"
                 "The following MCP servers have provided instructions "
-                "for how to use their tools and resources:\n\n"
-                + "\n\n".join(parts)
+                "for how to use their tools and resources:\n\n" + "\n\n".join(parts)
             )
 
     # ------------------------------------------------------------------
@@ -367,137 +372,171 @@ class RemoteServer:
 
                 if isinstance(event, StreamText):
                     stream_buf += event.text
-                    await self._broadcast({
-                        "type": "stream_text",
-                        "data": {"text": event.text},
-                    })
+                    await self._broadcast(
+                        {
+                            "type": "stream_text",
+                            "data": {"text": event.text},
+                        }
+                    )
 
                 elif isinstance(event, ThinkingText):
-                    await self._broadcast({
-                        "type": "thinking_text",
-                        "data": {"text": event.text},
-                    })
+                    await self._broadcast(
+                        {
+                            "type": "thinking_text",
+                            "data": {"text": event.text},
+                        }
+                    )
 
                 elif isinstance(event, ToolUseEvent):
-                    await self._broadcast({
-                        "type": "tool_use",
-                        "data": {
-                            "toolId": event.tool_id,
-                            "toolName": event.tool_name,
-                            "args": event.arguments,
-                        },
-                    })
+                    await self._broadcast(
+                        {
+                            "type": "tool_use",
+                            "data": {
+                                "toolId": event.tool_id,
+                                "toolName": event.tool_name,
+                                "args": event.arguments,
+                            },
+                        }
+                    )
 
                 elif isinstance(event, ToolResultEvent):
                     # 如果之前有累积的流式文本，先结束它
                     if stream_buf:
-                        await self._broadcast({
-                            "type": "stream_end",
-                            "data": {"text": stream_buf},
-                        })
+                        await self._broadcast(
+                            {
+                                "type": "stream_end",
+                                "data": {"text": stream_buf},
+                            }
+                        )
                         stream_buf = ""
-                    await self._broadcast({
-                        "type": "tool_result",
-                        "data": {
-                            "toolId": event.tool_id,
-                            "toolName": event.tool_name,
-                            "output": event.output,
-                            "isError": event.is_error,
-                            "elapsed": event.elapsed,
-                        },
-                    })
+                    await self._broadcast(
+                        {
+                            "type": "tool_result",
+                            "data": {
+                                "toolId": event.tool_id,
+                                "toolName": event.tool_name,
+                                "output": event.output,
+                                "isError": event.is_error,
+                                "elapsed": event.elapsed,
+                            },
+                        }
+                    )
 
                 elif isinstance(event, PermissionRequest):
                     # 生成唯一 ID，等待 Web 端回复
                     perm_id = f"perm_{time.time_ns()}"
                     self._pending_perms[perm_id] = event.future
-                    await self._broadcast({
-                        "type": "permission_request",
-                        "data": {
-                            "id": perm_id,
-                            "toolName": event.tool_name,
-                            "description": event.description,
-                        },
-                    })
+                    await self._broadcast(
+                        {
+                            "type": "permission_request",
+                            "data": {
+                                "id": perm_id,
+                                "toolName": event.tool_name,
+                                "description": event.description,
+                            },
+                        }
+                    )
 
                 elif isinstance(event, TurnComplete):
                     if stream_buf:
-                        await self._broadcast({
-                            "type": "stream_end",
-                            "data": {"text": stream_buf},
-                        })
+                        await self._broadcast(
+                            {
+                                "type": "stream_end",
+                                "data": {"text": stream_buf},
+                            }
+                        )
                         stream_buf = ""
-                    await self._broadcast({
-                        "type": "turn_complete",
-                        "data": {"turn": event.turn},
-                    })
+                    await self._broadcast(
+                        {
+                            "type": "turn_complete",
+                            "data": {"turn": event.turn},
+                        }
+                    )
 
                 elif isinstance(event, LoopComplete):
                     if stream_buf:
-                        await self._broadcast({
-                            "type": "stream_end",
-                            "data": {"text": stream_buf},
-                        })
+                        await self._broadcast(
+                            {
+                                "type": "stream_end",
+                                "data": {"text": stream_buf},
+                            }
+                        )
                         stream_buf = ""
                     elapsed = time.monotonic() - start_time
-                    await self._broadcast({
-                        "type": "loop_complete",
-                        "data": {
-                            "totalTurns": event.total_turns,
-                            "elapsed": elapsed,
-                        },
-                    })
+                    await self._broadcast(
+                        {
+                            "type": "loop_complete",
+                            "data": {
+                                "totalTurns": event.total_turns,
+                                "elapsed": elapsed,
+                            },
+                        }
+                    )
 
                 elif isinstance(event, UsageEvent):
-                    await self._broadcast({
-                        "type": "usage",
-                        "data": {
-                            "inputTokens": event.input_tokens,
-                            "outputTokens": event.output_tokens,
-                        },
-                    })
+                    await self._broadcast(
+                        {
+                            "type": "usage",
+                            "data": {
+                                "inputTokens": event.input_tokens,
+                                "outputTokens": event.output_tokens,
+                            },
+                        }
+                    )
 
                 elif isinstance(event, ErrorEvent):
-                    await self._broadcast({
-                        "type": "error",
-                        "data": {"message": event.message},
-                    })
+                    await self._broadcast(
+                        {
+                            "type": "error",
+                            "data": {"message": event.message},
+                        }
+                    )
 
                 elif isinstance(event, CompactNotification):
-                    await self._broadcast({
-                        "type": "compact",
-                        "data": {"message": event.message},
-                    })
+                    await self._broadcast(
+                        {
+                            "type": "compact",
+                            "data": {"message": event.message},
+                        }
+                    )
 
                 elif isinstance(event, RetryEvent):
-                    await self._broadcast({
-                        "type": "retry",
-                        "data": {
-                            "reason": event.reason,
-                            "waitMs": int(event.wait * 1000),
-                        },
-                    })
+                    await self._broadcast(
+                        {
+                            "type": "retry",
+                            "data": {
+                                "reason": event.reason,
+                                "waitMs": int(event.wait * 1000),
+                            },
+                        }
+                    )
 
                 elif isinstance(event, HookEvent):
                     status = "ok" if event.success else "error"
-                    await self._broadcast({
-                        "type": "system",
-                        "data": {
-                            "message": f"Hook [{event.hook_id}] {status}: {event.output}"
-                        },
-                    })
+                    await self._broadcast(
+                        {
+                            "type": "system",
+                            "data": {
+                                "message": f"Hook [{event.hook_id}] {status}: {event.output}"
+                            },
+                        }
+                    )
 
         except asyncio.CancelledError:
-            await self._broadcast({
-                "type": "error",
-                "data": {"message": "Operation cancelled"},
-            })
+            await self._broadcast(
+                {
+                    "type": "error",
+                    "data": {"message": "Operation cancelled"},
+                }
+            )
         except Exception as exc:
             log.exception("Agent run error")
-            await self._broadcast({
-                "type": "error",
-                "data": {"message": str(exc)},
-            })
+            await self._broadcast(
+                {
+                    "type": "error",
+                    "data": {"message": str(exc)},
+                }
+            )
         finally:
             self._streaming = False
             self._cancel_event = None
@@ -514,19 +553,25 @@ class RemoteServer:
 
         cmd = self.command_registry.find(name)
         if cmd is None:
-            await self._broadcast({
-                "type": "error",
-                "data": {"message": f"Unknown command: /{name} — type /help to see available commands"},
-            })
+            await self._broadcast(
+                {
+                    "type": "error",
+                    "data": {
+                        "message": f"Unknown command: /{name} — type /help to see available commands"
+                    },
+                }
+            )
             await self._broadcast({"type": "command_done", "data": None})
             return
 
         # 需要参数但没给
         if not args and cmd.arg_prompt:
-            await self._broadcast({
-                "type": "system",
-                "data": {"message": cmd.arg_prompt},
-            })
+            await self._broadcast(
+                {
+                    "type": "system",
+                    "data": {"message": cmd.arg_prompt},
+                }
+            )
             await self._broadcast({"type": "command_done", "data": None})
             return
 
@@ -536,10 +581,12 @@ class RemoteServer:
             try:
                 await cmd.handler(ctx)
             except Exception as exc:
-                await self._broadcast({
-                    "type": "error",
-                    "data": {"message": f"Command error: {exc}"},
-                })
+                await self._broadcast(
+                    {
+                        "type": "error",
+                        "data": {"message": f"Command error: {exc}"},
+                    }
+                )
             await self._broadcast({"type": "command_done", "data": None})
 
         elif cmd.type == CommandType.LOCAL_UI:
@@ -555,10 +602,14 @@ class RemoteServer:
                 return
 
             else:
-                await self._broadcast({
-                    "type": "system",
-                    "data": {"message": f"/{name} is not fully supported in remote mode."},
-                })
+                await self._broadcast(
+                    {
+                        "type": "system",
+                        "data": {
+                            "message": f"/{name} is not fully supported in remote mode."
+                        },
+                    }
+                )
 
             await self._broadcast({"type": "command_done", "data": None})
 
@@ -568,10 +619,12 @@ class RemoteServer:
             try:
                 await cmd.handler(ctx)
             except Exception as exc:
-                await self._broadcast({
-                    "type": "error",
-                    "data": {"message": f"Command error: {exc}"},
-                })
+                await self._broadcast(
+                    {
+                        "type": "error",
+                        "data": {"message": f"Command error: {exc}"},
+                    }
+                )
                 await self._broadcast({"type": "command_done", "data": None})
 
     def _build_command_context(self, args: str) -> CommandContext:
@@ -592,29 +645,37 @@ class RemoteServer:
     async def _handle_compact(self) -> None:
         """处理 /compact 命令。"""
         if self.agent is None or self.conversation is None:
-            await self._broadcast({
-                "type": "error",
-                "data": {"message": "Compact requires an active agent."},
-            })
+            await self._broadcast(
+                {
+                    "type": "error",
+                    "data": {"message": "Compact requires an active agent."},
+                }
+            )
             await self._broadcast({"type": "command_done", "data": None})
             return
 
-        await self._broadcast({
-            "type": "system",
-            "data": {"message": "Compacting conversation..."},
-        })
+        await self._broadcast(
+            {
+                "type": "system",
+                "data": {"message": "Compacting conversation..."},
+            }
+        )
 
         result = await self.agent.manual_compact(self.conversation)
         if isinstance(result, CompactNotification):
-            await self._broadcast({
-                "type": "system",
-                "data": {"message": result.message},
-            })
+            await self._broadcast(
+                {
+                    "type": "system",
+                    "data": {"message": result.message},
+                }
+            )
         elif isinstance(result, ErrorEvent):
-            await self._broadcast({
-                "type": "error",
-                "data": {"message": result.message},
-            })
+            await self._broadcast(
+                {
+                    "type": "error",
+                    "data": {"message": result.message},
+                }
+            )
 
         await self._broadcast({"type": "command_done", "data": None})
 
@@ -624,10 +685,14 @@ class RemoteServer:
 
     def add_system_message(self, text: str) -> None:
         """同步接口 — 在事件循环中调度广播。"""
-        asyncio.ensure_future(self._broadcast({
-            "type": "system",
-            "data": {"message": text},
-        }))
+        asyncio.ensure_future(
+            self._broadcast(
+                {
+                    "type": "system",
+                    "data": {"message": text},
+                }
+            )
+        )
 
     def send_user_message(self, text: str) -> None:
         """同步接口 — 注入用户消息并触发 agent。"""
@@ -679,10 +744,12 @@ class RemoteServer:
         """构建命令列表，推送给前端用于斜杠命令菜单。"""
         result = []
         for cmd in self.command_registry.list_commands():
-            result.append({
-                "name": cmd.name,
-                "description": cmd.description,
-            })
+            result.append(
+                {
+                    "name": cmd.name,
+                    "description": cmd.description,
+                }
+            )
         return result
 
     async def _broadcast(self, msg: dict[str, Any]) -> None:

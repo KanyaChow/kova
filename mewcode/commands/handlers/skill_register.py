@@ -1,15 +1,15 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 import asyncio
 import logging
 from typing import TYPE_CHECKING
 
-from mewcode.commands.registry import Command, CommandContext, CommandRegistry, CommandType
+from mewcode.commands.registry import (
+    Command,
+    CommandContext,
+    CommandRegistry,
+    CommandType,
+)
 
 if TYPE_CHECKING:
     from mewcode.skills.executor import SkillExecutor
@@ -40,9 +40,7 @@ def register_skill_commands(
         s_name = skill_name
         s_desc = skill_desc
 
-
         def make_handler(name: str) -> callable:
-
 
             async def handler(ctx: CommandContext) -> None:
                 exe = ctx.config.get("skill_executor") if executor is None else executor
@@ -63,7 +61,6 @@ def register_skill_commands(
                 if skill.mode == "fork":
                     ctx.ui.add_system_message(f"⏳ Running {name} skill...")
 
-
                     async def _run_fork() -> None:
                         try:
                             result = await exe.execute_fork(skill, ctx.args)
@@ -71,9 +68,7 @@ def register_skill_commands(
                                 f"[{name} skill result]\n{result}"
                             )
                         except Exception as e:
-                            ctx.ui.add_system_message(
-                                f"Skill {name} failed: {e}"
-                            )
+                            ctx.ui.add_system_message(f"Skill {name} failed: {e}")
 
                     asyncio.create_task(_run_fork())
                 else:

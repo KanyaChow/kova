@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -38,7 +33,8 @@ def build_diff(old_content: str, new_content: str) -> DiffResult:
     max_suffix = max_prefix - prefix_len
     while (
         suffix_len < max_suffix
-        and old_lines[len(old_lines) - 1 - suffix_len] == new_lines[len(new_lines) - 1 - suffix_len]
+        and old_lines[len(old_lines) - 1 - suffix_len]
+        == new_lines[len(new_lines) - 1 - suffix_len]
     ):
         suffix_len += 1
 
@@ -80,4 +76,6 @@ def build_diff(old_content: str, new_content: str) -> DiffResult:
     if truncated:
         out.append(f"  … (diff truncated at {_MAX_DIFF_LINES} lines)")
 
-    return DiffResult(text="\n".join(out), additions=len(added_lines), removals=len(removed_lines))
+    return DiffResult(
+        text="\n".join(out), additions=len(added_lines), removals=len(removed_lines)
+    )

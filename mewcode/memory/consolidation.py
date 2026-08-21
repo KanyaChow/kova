@@ -1,14 +1,10 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 """后台记忆整理（autoDream）。
 
 满足时间门（≥24h）和会话门（≥5 sessions）后自动 fork 子 Agent，
 扫描现有记忆，合并重复、删除过时、修正矛盾、维护索引。
 空闲时自动整合碎片记忆，减少冗余，保持记忆库精简可靠。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -100,9 +96,7 @@ class MemoryConsolidator:
         prior_mtime: int,
     ) -> None:
         try:
-            await self._do_consolidation(
-                client, conversation, protocol, session_ids
-            )
+            await self._do_consolidation(client, conversation, protocol, session_ids)
         except Exception:
             logger.debug("[consolidation] failed, rolling back lock")
             _rollback_lock(self._mem_dir, prior_mtime)
@@ -132,7 +126,14 @@ class MemoryConsolidator:
 
         # 构建子 Agent 的工具注册表
         registry = ToolRegistry()
-        for tool_cls in [ReadFileTool, WriteFileTool, EditFileTool, GlobTool, GrepTool, BashTool]:
+        for tool_cls in [
+            ReadFileTool,
+            WriteFileTool,
+            EditFileTool,
+            GlobTool,
+            GrepTool,
+            BashTool,
+        ]:
             registry.register(tool_cls())
 
         checker = PermissionChecker(self._work_dir, mode="bypass")
@@ -221,8 +222,11 @@ def _rollback_lock(mem_dir: str, prior_mtime: int) -> None:
 def _is_process_running(pid: int) -> bool:
     if os.name == "nt":
         import ctypes
+
         PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
-        h = ctypes.windll.kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+        h = ctypes.windll.kernel32.OpenProcess(
+            PROCESS_QUERY_LIMITED_INFORMATION, False, pid
+        )
         if h:
             ctypes.windll.kernel32.CloseHandle(h)
             return True
@@ -246,11 +250,7 @@ def _list_sessions_since(work_dir: str, since_ms: int) -> list[str]:
     mgr = SessionManager(work_dir)
     since_ts = since_ms / 1000
     # last_active 是 datetime，转成秒级 epoch 再与阈值比较
-    return [
-        s.id
-        for s in mgr.list()
-        if s.last_active.timestamp() > since_ts
-    ]
+    return [s.id for s in mgr.list() if s.last_active.timestamp() > since_ts]
 
 
 # ---------------------------------------------------------------------------
@@ -329,10 +329,12 @@ def _build_consolidation_prompt(
         for sid in session_ids:
             lines.append(f"- {sid}")
 
-    lines.extend([
-        "",
-        "Return a brief summary of what you consolidated, updated, or pruned. "
-        "If nothing changed (memories are already tight), say so.",
-    ])
+    lines.extend(
+        [
+            "",
+            "Return a brief summary of what you consolidated, updated, or pruned. "
+            "If nothing changed (memories are already tight), say so.",
+        ]
+    )
 
     return "\n".join(lines)

@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import json
@@ -40,7 +36,7 @@ SELECTOR_SYSTEM_PROMPT = (
     "already exercising them). DO still select memories containing warnings, "
     "gotchas, or known issues about those tools — active use is exactly when "
     "those matter.\n\n"
-    'Respond with valid JSON only, no markdown, in this exact shape: '
+    "Respond with valid JSON only, no markdown, in this exact shape: "
     '{"selected_memories": ["filename1.md", "filename2.md"]}'
 )
 
@@ -52,14 +48,15 @@ SelectorFn = Callable[[str, str], Awaitable[str]]
 # Data classes
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class MemoryHeader:
-    filename: str      # path relative to memory_dir
-    file_path: str     # absolute path
-    scope: str         # "user" or "project"
-    mtime_ms: int      # modification time, ms since epoch
-    description: str   # frontmatter description; "" if absent
-    type: str          # frontmatter type; "" if unrecognized
+    filename: str  # path relative to memory_dir
+    file_path: str  # absolute path
+    scope: str  # "user" or "project"
+    mtime_ms: int  # modification time, ms since epoch
+    description: str  # frontmatter description; "" if absent
+    type: str  # frontmatter type; "" if unrecognized
 
 
 @dataclass
@@ -71,6 +68,7 @@ class RelevantMemory:
 # ---------------------------------------------------------------------------
 # Memory age helpers
 # ---------------------------------------------------------------------------
+
 
 def memory_age_days(mtime_ms: int) -> int:
     """Floor-rounded days since mtime. 0 for today, 1 for yesterday, etc."""
@@ -104,6 +102,7 @@ def memory_freshness_text(mtime_ms: int) -> str:
 # ---------------------------------------------------------------------------
 # Frontmatter parsing
 # ---------------------------------------------------------------------------
+
 
 def parse_frontmatter(content: str) -> dict[str, str]:
     """Extract name/description/type from YAML-ish frontmatter.
@@ -142,6 +141,7 @@ def parse_frontmatter(content: str) -> dict[str, str]:
 # ---------------------------------------------------------------------------
 # Scanning
 # ---------------------------------------------------------------------------
+
 
 def scan_memory_files(memory_dir: Path, scope: str) -> list[MemoryHeader]:
     """Walk memory_dir for .md files (excluding MEMORY.md), read frontmatter
@@ -212,6 +212,7 @@ def _read_memory_header(
 # Manifest formatting
 # ---------------------------------------------------------------------------
 
+
 def format_memory_manifest(memories: list[MemoryHeader]) -> str:
     """Format memory headers as a text manifest for the selector prompt."""
     if not memories:
@@ -220,9 +221,12 @@ def format_memory_manifest(memories: list[MemoryHeader]) -> str:
     for m in memories:
         scope_tag = f"[{m.scope}-scope] " if m.scope else ""
         type_tag = f"[{m.type}] " if m.type else ""
-        ts = datetime.fromtimestamp(
-            m.mtime_ms / 1000, tz=timezone.utc
-        ).strftime("%Y-%m-%dT%H:%M:%S.") + f"{m.mtime_ms % 1000:03d}Z"
+        ts = (
+            datetime.fromtimestamp(m.mtime_ms / 1000, tz=timezone.utc).strftime(
+                "%Y-%m-%dT%H:%M:%S."
+            )
+            + f"{m.mtime_ms % 1000:03d}Z"
+        )
         path = m.file_path if m.file_path else m.filename
         if m.description:
             lines.append(f"- {scope_tag}{type_tag}{path} ({ts}): {m.description}")
@@ -234,6 +238,7 @@ def format_memory_manifest(memories: list[MemoryHeader]) -> str:
 # ---------------------------------------------------------------------------
 # Find relevant memories
 # ---------------------------------------------------------------------------
+
 
 async def find_relevant_memories(
     query: str,
@@ -333,6 +338,7 @@ def _extract_json_object(raw: str) -> str:
 # ---------------------------------------------------------------------------
 # Reminder rendering
 # ---------------------------------------------------------------------------
+
 
 def render_reminder(memories: list[RelevantMemory]) -> str:
     """Read each selected memory file's full content and format a single

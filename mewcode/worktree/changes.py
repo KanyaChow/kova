@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import logging
@@ -15,6 +11,7 @@ GIT_ENV = {"GIT_TERMINAL_PROMPT": "0", "GIT_ASKPASS": ""}
 
 def _run_git(args: list[str], cwd: str) -> subprocess.CompletedProcess[str]:
     import os
+
     env = {**os.environ, **GIT_ENV}
     return subprocess.run(
         ["git"] + args,

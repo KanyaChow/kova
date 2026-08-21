@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 import asyncio
@@ -72,9 +67,7 @@ async def cleanup_stale_worktrees(manager: WorktreeManager, cutoff_hours: int) -
             if flat_name in manager.active:
                 await manager._remove_worktree(flat_name, manager.active[flat_name])
             else:
-                result = manager._run_git(
-                    ["worktree", "remove", "--force", str(entry)]
-                )
+                result = manager._run_git(["worktree", "remove", "--force", str(entry)])
                 if result.returncode == 0:
                     await asyncio.sleep(0.1)
                     manager._run_git(["branch", "-D", f"worktree-{flat_name}"])
@@ -99,4 +92,3 @@ async def start_stale_cleanup_task(
                 log.info("Stale worktree cleanup removed %d worktrees", count)
         except Exception as e:
             log.warning("Stale worktree cleanup error: %s", e)
-

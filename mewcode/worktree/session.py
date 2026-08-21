@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 import json
@@ -63,4 +58,3 @@ def load_worktree_session(mewcode_dir: Path) -> WorktreeSession | None:
     except (json.JSONDecodeError, KeyError) as e:
         log.warning("Failed to load worktree session: %s", e)
         return None
-

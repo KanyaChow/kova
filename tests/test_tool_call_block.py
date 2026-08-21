@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from mewcode.app import ToolCallBlock, _format_detail
@@ -34,7 +29,9 @@ def test_format_detail_escapes_brackets_in_code():
 
 def test_edit_file_block_auto_expands_on_success():
     block = ToolCallBlock("EditFile", {"file_path": "foo.py"})
-    block.set_result("Updated foo.py with 1 addition and 0 removals\n+    1  hello", False, 0.1)
+    block.set_result(
+        "Updated foo.py with 1 addition and 0 removals\n+    1  hello", False, 0.1
+    )
 
     assert block._collapsed is False
     assert "hello" in block.render().plain

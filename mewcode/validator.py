@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 """MewCode 的配置校验逻辑。"""
 
 from __future__ import annotations
@@ -24,11 +20,11 @@ DEFAULT_CONTEXT_WINDOW = 200_000
 # 按从最具体到最通用排序，第一个子串命中即生效。值仅为合理起始点，
 # 模型更新/重命名后可能过时。如果值不准确，在配置中设置 context_window 覆盖（最高优先级）。
 MODEL_CONTEXT_WINDOWS: list[tuple[str, int]] = [
-    ("1m", 1_000_000),       # 也覆盖 "-1m" 后缀（如 claude-...-1m）
+    ("1m", 1_000_000),  # 也覆盖 "-1m" 后缀（如 claude-...-1m）
     ("gpt-4.1", 1_000_000),  # GPT-4.1 系列的 window 为 1M
     ("gpt-4o", 128_000),
     ("gpt-4-turbo", 128_000),
-    ("o1", 200_000),         # OpenAI 推理模型 o1 / o3 / o4
+    ("o1", 200_000),  # OpenAI 推理模型 o1 / o3 / o4
     ("o3", 200_000),
     ("o4", 200_000),
     ("gpt-3.5", 16_385),
@@ -60,9 +56,13 @@ def validate_providers(raw_providers: list) -> list[dict]:
         if not isinstance(entry, dict):
             raise ConfigError(f"Provider #{i + 1}: must be a mapping")
 
-        missing = [f for f in ("name", "protocol", "base_url", "model") if f not in entry]
+        missing = [
+            f for f in ("name", "protocol", "base_url", "model") if f not in entry
+        ]
         if missing:
-            raise ConfigError(f"Provider #{i + 1}: missing fields: {', '.join(missing)}")
+            raise ConfigError(
+                f"Provider #{i + 1}: missing fields: {', '.join(missing)}"
+            )
 
         protocol = entry["protocol"]
         if protocol not in VALID_PROTOCOLS:
@@ -73,10 +73,14 @@ def validate_providers(raw_providers: list) -> list[dict]:
 
         # 默认为 0（"未设置"）而非硬编码的 window 值：0 会让
         # ProviderConfig.get_context_window() 走四层回退链解析
-        #（自动拉取 / 映射表 / 默认值）。配置中显式指定的值仍须为正整数，
+        # （自动拉取 / 映射表 / 默认值）。配置中显式指定的值仍须为正整数，
         # 且作为最高优先级覆盖。
         context_window = entry.get("context_window", 0)
-        if not isinstance(context_window, int) or isinstance(context_window, bool) or context_window < 0:
+        if (
+            not isinstance(context_window, int)
+            or isinstance(context_window, bool)
+            or context_window < 0
+        ):
             raise ConfigError(
                 f"Provider #{i + 1}: context_window must be a positive integer"
             )
@@ -192,7 +196,9 @@ def validate_worktree(raw_wt: dict | None) -> dict:
 
     interval = raw_wt.get("stale_cleanup_interval", defaults["stale_cleanup_interval"])
     if not isinstance(interval, int) or interval <= 0:
-        raise ConfigError("'worktree.stale_cleanup_interval' must be a positive integer")
+        raise ConfigError(
+            "'worktree.stale_cleanup_interval' must be a positive integer"
+        )
 
     cutoff = raw_wt.get("stale_cutoff_hours", defaults["stale_cutoff_hours"])
     if not isinstance(cutoff, int) or cutoff <= 0:
@@ -253,10 +259,14 @@ def validate_config_structure(raw: object) -> dict:
 
     return {
         "providers": validate_providers(raw["providers"]),
-        "permission_mode": validate_permission_mode(raw.get("permission_mode", "default")),
+        "permission_mode": validate_permission_mode(
+            raw.get("permission_mode", "default")
+        ),
         "mcp_servers": validate_mcp_servers(raw.get("mcp_servers")),
         "hooks": validate_hooks(raw.get("hooks")),
-        "enable_fork": validate_bool_field(raw.get("enable_fork", False), "enable_fork"),
+        "enable_fork": validate_bool_field(
+            raw.get("enable_fork", False), "enable_fork"
+        ),
         "enable_verification_agent": validate_bool_field(
             raw.get("enable_verification_agent", False), "enable_verification_agent"
         ),

@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import asyncio
@@ -49,7 +45,9 @@ class WorktreeManager:
         self.active: dict[str, Worktree] = {}
         self.current_session: WorktreeSession | None = None
 
-    def _run_git(self, args: list[str], cwd: str | None = None) -> subprocess.CompletedProcess[str]:
+    def _run_git(
+        self, args: list[str], cwd: str | None = None
+    ) -> subprocess.CompletedProcess[str]:
         env = {**os.environ, **GIT_ENV}
         return subprocess.run(
             ["git"] + args,
@@ -143,14 +141,18 @@ class WorktreeManager:
 
             os.makedirs(self.worktree_dir, exist_ok=True)
 
-            result = self._run_git([
-                "worktree", "add",
-                "-B", branch_name, wt_path, base_branch,
-            ])
+            result = self._run_git(
+                [
+                    "worktree",
+                    "add",
+                    "-B",
+                    branch_name,
+                    wt_path,
+                    base_branch,
+                ]
+            )
             if result.returncode != 0:
-                raise WorktreeError(
-                    f"git worktree add failed: {result.stderr.strip()}"
-                )
+                raise WorktreeError(f"git worktree add failed: {result.stderr.strip()}")
 
             perform_post_creation_setup(
                 self.repo_root,
@@ -196,7 +198,6 @@ class WorktreeManager:
     # ------------------------------------------------------------------
     # 退出 worktree
     # ------------------------------------------------------------------
-
 
     async def exit(
         self,
@@ -244,7 +245,6 @@ class WorktreeManager:
     # 自动清理
     # ------------------------------------------------------------------
 
-
     async def auto_cleanup(self, name: str, head_commit: str) -> CleanupResult:
         wt = self.active.get(name)
         if wt is None:
@@ -262,7 +262,6 @@ class WorktreeManager:
 
     def list_worktrees(self) -> list[Worktree]:
         return list(self.active.values())
-
 
     def get_current_session(self) -> WorktreeSession | None:
         return self.current_session
@@ -295,7 +294,6 @@ class WorktreeManager:
     # ------------------------------------------------------------------
     # 辅助方法
     # ------------------------------------------------------------------
-
 
     def _get_current_branch(self) -> str:
         try:

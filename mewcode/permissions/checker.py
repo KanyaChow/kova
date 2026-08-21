@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import os
@@ -14,7 +10,9 @@ from mewcode.permissions.rules import RuleEngine, extract_content
 from mewcode.permissions.sandbox import PathSandbox
 from mewcode.tools.base import Tool
 
-_PLAN_MODE_ALLOWED_TOOLS = frozenset({"Agent", "ToolSearch", "AskUserQuestion", "ExitPlanMode"})
+_PLAN_MODE_ALLOWED_TOOLS = frozenset(
+    {"Agent", "ToolSearch", "AskUserQuestion", "ExitPlanMode"}
+)
 
 
 @dataclass
@@ -24,8 +22,6 @@ class Decision:
 
 
 class PermissionChecker:
-
-
     def __init__(
         self,
         detector: DangerousCommandDetector,
@@ -44,7 +40,6 @@ class PermissionChecker:
         # Layer 4b: 会话级 allow-always 集合（内存中，不持久化）
         # 存放格式为 "ToolName:pattern"，用户选择 "don't ask again" 时记录
         self._session_allowed: set[str] = set()
-
 
     def add_session_allow(self, tool_name: str, content: str) -> None:
         """将工具+内容模式加入会话级放行集合（Layer 4b）。
@@ -82,7 +77,6 @@ class PermissionChecker:
             parts.append(f"{k}={sv}")
         return ", ".join(parts) if parts else tool_name
 
-
     def check(self, tool: Tool, arguments: dict[str, Any]) -> Decision:
         content = extract_content(tool.name, arguments)
 
@@ -111,7 +105,12 @@ class PermissionChecker:
         # deny 规则和 ask 规则不受沙箱影响。
         if self.sandbox_enabled and tool.category == "command":
             import re
-            subcommands = [s.strip() for s in re.split(r'\s*(?:&&|\|\||[;|])\s*', content) if s.strip()]
+
+            subcommands = [
+                s.strip()
+                for s in re.split(r"\s*(?:&&|\|\||[;|])\s*", content)
+                if s.strip()
+            ]
             if not subcommands:
                 subcommands = [content]
             has_ask = False
@@ -151,7 +150,6 @@ class PermissionChecker:
 
         # Layer 5: 触发人工确认（HITL）
         return Decision(effect="ask", reason="需要用户确认")
-
 
     def _is_plan_file(self, target_path: str) -> bool:
         if not self.plan_file_path or not target_path:

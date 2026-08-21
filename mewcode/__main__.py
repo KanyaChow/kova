@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 import argparse
@@ -36,7 +31,9 @@ def main() -> None:
         filemode="w",
     )
 
-    parser = argparse.ArgumentParser(prog="mewcode", description="MewCode AI coding assistant")
+    parser = argparse.ArgumentParser(
+        prog="mewcode", description="MewCode AI coding assistant"
+    )
     parser.add_argument(
         "--mode",
         choices=[m.value for m in PermissionMode],
@@ -82,7 +79,9 @@ def main() -> None:
 
     if args.p is not None:
         output_format = getattr(args, "output_format", "text")
-        asyncio.run(_run_prompt(config, permission_mode, hook_engine, args.p, output_format))
+        asyncio.run(
+            _run_prompt(config, permission_mode, hook_engine, args.p, output_format)
+        )
         return
 
     # Remote 模式：启动 WebSocket 服务器，浏览器访问 http://localhost:18888
@@ -116,7 +115,9 @@ def main() -> None:
     app.run()
 
 
-async def _run_prompt(config, permission_mode, hook_engine, prompt: str, output_format: str = "text") -> None:
+async def _run_prompt(
+    config, permission_mode, hook_engine, prompt: str, output_format: str = "text"
+) -> None:
     from mewcode.agent import (
         Agent,
         CompactNotification,
@@ -201,7 +202,9 @@ async def _run_prompt(config, permission_mode, hook_engine, prompt: str, output_
     )
     trace_manager = TraceManager()
     task_manager = TaskManager()
-    agent_loader = AgentLoader(work_dir, enable_verification=config.enable_verification_agent)
+    agent_loader = AgentLoader(
+        work_dir, enable_verification=config.enable_verification_agent
+    )
     agent_loader.load_all()
     team_manager = TeamManager(worktree_manager=wt_manager, trace_manager=trace_manager)
 
@@ -216,13 +219,15 @@ async def _run_prompt(config, permission_mode, hook_engine, prompt: str, output_
         team_manager=team_manager,
     )
     registry.register(agent_tool)
-    registry.register(TeamCreateTool(
-        team_manager=team_manager,
-        parent_agent=agent,
-        teammate_mode="in-process",
-        is_interactive=False,
-        enable_coordinator_mode=config.enable_coordinator_mode,
-    ))
+    registry.register(
+        TeamCreateTool(
+            team_manager=team_manager,
+            parent_agent=agent,
+            teammate_mode="in-process",
+            is_interactive=False,
+            enable_coordinator_mode=config.enable_coordinator_mode,
+        )
+    )
     registry.register(TeamDeleteTool(team_manager=team_manager, parent_agent=agent))
 
     def drain_notifications() -> list[str]:
@@ -264,36 +269,42 @@ async def _run_prompt(config, permission_mode, hook_engine, prompt: str, output_
         elif isinstance(event, ToolUseEvent):
             tool_calls.append({"name": event.tool_name, "is_error": False})
             if is_json:
-                emit_json({
-                    "type": "tool_use",
-                    "tool_name": event.tool_name,
-                    "tool_id": event.tool_id,
-                    "args": event.arguments,
-                })
+                emit_json(
+                    {
+                        "type": "tool_use",
+                        "tool_name": event.tool_name,
+                        "tool_id": event.tool_id,
+                        "args": event.arguments,
+                    }
+                )
 
         elif isinstance(event, ToolResultEvent):
             # 回填最后一个同名 tool_call 的 is_error
             if tool_calls:
                 tool_calls[-1]["is_error"] = event.is_error
             if is_json:
-                emit_json({
-                    "type": "tool_result",
-                    "tool_name": event.tool_name,
-                    "tool_id": event.tool_id,
-                    "output": event.output,
-                    "is_error": event.is_error,
-                    "elapsed": round(event.elapsed, 3),
-                })
+                emit_json(
+                    {
+                        "type": "tool_result",
+                        "tool_name": event.tool_name,
+                        "tool_id": event.tool_id,
+                        "output": event.output,
+                        "is_error": event.is_error,
+                        "elapsed": round(event.elapsed, 3),
+                    }
+                )
 
         elif isinstance(event, UsageEvent):
             total_input = event.input_tokens
             total_output = event.output_tokens
             if is_json:
-                emit_json({
-                    "type": "usage",
-                    "input_tokens": event.input_tokens,
-                    "output_tokens": event.output_tokens,
-                })
+                emit_json(
+                    {
+                        "type": "usage",
+                        "input_tokens": event.input_tokens,
+                        "output_tokens": event.output_tokens,
+                    }
+                )
 
         elif isinstance(event, TurnComplete):
             if is_json:
@@ -303,18 +314,20 @@ async def _run_prompt(config, permission_mode, hook_engine, prompt: str, output_
             # 最终结果：stream-json 输出 result 行，text 模式直接打印文本
             elapsed_ms = int((time.monotonic() - start) * 1000)
             if is_json:
-                emit_json({
-                    "type": "result",
-                    "result": text_buf,
-                    "duration_ms": elapsed_ms,
-                    "num_turns": event.total_turns,
-                    "tool_calls": tool_calls,
-                    "usage": {
-                        "input_tokens": total_input,
-                        "output_tokens": total_output,
-                    },
-                    "stop_reason": "end_turn",
-                })
+                emit_json(
+                    {
+                        "type": "result",
+                        "result": text_buf,
+                        "duration_ms": elapsed_ms,
+                        "num_turns": event.total_turns,
+                        "tool_calls": tool_calls,
+                        "usage": {
+                            "input_tokens": total_input,
+                            "output_tokens": total_output,
+                        },
+                        "stop_reason": "end_turn",
+                    }
+                )
             else:
                 print(text_buf, end="", flush=True)
             break
@@ -344,13 +357,23 @@ async def _run_prompt(config, permission_mode, hook_engine, prompt: str, output_
     for i in range(90):
         await asyncio.sleep(2)
         running = {k: not t.done() for k, t in task_manager._async_tasks.items()}
-        completed_ids = [t.id for t in task_manager._tasks.values() if t.status != "running"]
-        print(f"[poll {i}] running={running} completed={completed_ids} teams={list(team_manager._teams.keys())} queue_size={task_manager._notify_queue.qsize()}", file=sys.stderr, flush=True)
+        completed_ids = [
+            t.id for t in task_manager._tasks.values() if t.status != "running"
+        ]
+        print(
+            f"[poll {i}] running={running} completed={completed_ids} teams={list(team_manager._teams.keys())} queue_size={task_manager._notify_queue.qsize()}",
+            file=sys.stderr,
+            flush=True,
+        )
         notes = drain_notifications()
         if not notes:
             has_running = any(v for v in running.values())
             if not has_running:
-                print(f"[poll {i}] no running tasks, breaking", file=sys.stderr, flush=True)
+                print(
+                    f"[poll {i}] no running tasks, breaking",
+                    file=sys.stderr,
+                    flush=True,
+                )
                 break
             continue
         for note in notes:
@@ -454,12 +477,14 @@ async def _run_teammate(team_name: str, agent_name: str) -> None:
     name_registry.register(LEAD_NAME, team.lead_agent_id)
 
     registry = create_default_registry()
-    registry.register(SendMessageTool(
-        team_manager=team_manager,
-        team_name=team_name,
-        from_agent_id=agent_name,
-        from_agent_name=agent_name,
-    ))
+    registry.register(
+        SendMessageTool(
+            team_manager=team_manager,
+            team_name=team_name,
+            from_agent_id=agent_name,
+            from_agent_name=agent_name,
+        )
+    )
 
     checker = PermissionChecker(
         detector=DangerousCommandDetector(),
@@ -480,7 +505,9 @@ async def _run_teammate(team_name: str, agent_name: str) -> None:
 
     # 不传初始 prompt：lead 已把首个任务写进邮箱，主循环首次轮询即可取到，
     # 避免重复注入一条 user 消息。
-    print(f"[teammate {team_name}/{agent_name}] booted, awaiting tasks", file=sys.stderr)
+    print(
+        f"[teammate {team_name}/{agent_name}] booted, awaiting tasks", file=sys.stderr
+    )
     handle = spawn_inprocess_teammate(
         agent=agent,
         prompt="",
@@ -498,4 +525,3 @@ async def _run_teammate(team_name: str, agent_name: str) -> None:
 
 if __name__ == "__main__":
     main()
-

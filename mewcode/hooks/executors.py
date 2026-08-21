@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import asyncio
@@ -54,7 +50,6 @@ async def execute_http(action: Action, ctx: HookContext) -> ActionResult:
         headers[k] = ctx.expand(v)
     if body and "Content-Type" not in headers:
         headers["Content-Type"] = "application/json"
-
 
     def _do_request() -> ActionResult:
         try:

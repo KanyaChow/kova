@@ -1,9 +1,5 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 """五层权限系统的测试。"""
+
 from __future__ import annotations
 
 import asyncio
@@ -46,6 +42,7 @@ from mewcode.tools.base import StreamEnd, StreamEvent, TextDelta, ToolCallComple
 # ===========================================================================
 # 第一层：DangerousCommandDetector（危险命令检测器）
 # ===========================================================================
+
 
 class TestDangerousCommandDetector:
     def setup_method(self) -> None:
@@ -104,9 +101,11 @@ class TestDangerousCommandDetector:
         hit, _ = self.detector.detect("ls -la")
         assert not hit
 
+
 # ===========================================================================
 # 第二层：PathSandbox（路径沙箱）
 # ===========================================================================
+
 
 class TestPathSandbox:
     def setup_method(self) -> None:
@@ -163,9 +162,11 @@ class TestPathSandbox:
         ok, _ = self.sandbox.check(str(deep))
         assert ok
 
+
 # ===========================================================================
 # 第三层：RuleEngine（规则引擎）
 # ===========================================================================
+
 
 class TestRuleEngine:
     def test_parse_rule(self) -> None:
@@ -194,7 +195,10 @@ class TestRuleEngine:
     def test_extract_content(self) -> None:
         assert extract_content("Bash", {"command": "ls -la"}) == "ls -la"
         assert extract_content("ReadFile", {"file_path": "/tmp/x.txt"}) == "/tmp/x.txt"
-        assert extract_content("WriteFile", {"file_path": "/tmp/y.txt", "content": "hi"}) == "/tmp/y.txt"
+        assert (
+            extract_content("WriteFile", {"file_path": "/tmp/y.txt", "content": "hi"})
+            == "/tmp/y.txt"
+        )
         assert extract_content("Glob", {"pattern": "**/*.py"}) == "**/*.py"
         assert extract_content("Grep", {"pattern": "TODO"}) == "TODO"
         assert extract_content("UnknownTool", {"x": 1}) == ""
@@ -202,10 +206,14 @@ class TestRuleEngine:
     def test_evaluate_single_tier(self) -> None:
         tmpdir = Path(tempfile.mkdtemp())
         rules_file = tmpdir / "rules.yaml"
-        rules_file.write_text(yaml.dump([
-            {"rule": "Bash(git *)", "effect": "allow"},
-            {"rule": "Bash(rm *)", "effect": "deny"},
-        ]))
+        rules_file.write_text(
+            yaml.dump(
+                [
+                    {"rule": "Bash(git *)", "effect": "allow"},
+                    {"rule": "Bash(rm *)", "effect": "deny"},
+                ]
+            )
+        )
         engine = RuleEngine(project_rules_path=rules_file)
         assert engine.evaluate("Bash", "git commit -m x") == "allow"
         assert engine.evaluate("Bash", "rm -rf build") == "deny"
@@ -214,10 +222,14 @@ class TestRuleEngine:
     def test_same_tier_last_wins(self) -> None:
         tmpdir = Path(tempfile.mkdtemp())
         rules_file = tmpdir / "rules.yaml"
-        rules_file.write_text(yaml.dump([
-            {"rule": "Bash(git *)", "effect": "deny"},
-            {"rule": "Bash(git *)", "effect": "allow"},
-        ]))
+        rules_file.write_text(
+            yaml.dump(
+                [
+                    {"rule": "Bash(git *)", "effect": "deny"},
+                    {"rule": "Bash(git *)", "effect": "allow"},
+                ]
+            )
+        )
         engine = RuleEngine(project_rules_path=rules_file)
         assert engine.evaluate("Bash", "git status") == "allow"
 
@@ -225,12 +237,20 @@ class TestRuleEngine:
         tmpdir = Path(tempfile.mkdtemp())
         user_file = tmpdir / "user.yaml"
         project_file = tmpdir / "project.yaml"
-        user_file.write_text(yaml.dump([
-            {"rule": "Bash(rm *)", "effect": "deny"},
-        ]))
-        project_file.write_text(yaml.dump([
-            {"rule": "Bash(rm *)", "effect": "allow"},
-        ]))
+        user_file.write_text(
+            yaml.dump(
+                [
+                    {"rule": "Bash(rm *)", "effect": "deny"},
+                ]
+            )
+        )
+        project_file.write_text(
+            yaml.dump(
+                [
+                    {"rule": "Bash(rm *)", "effect": "allow"},
+                ]
+            )
+        )
         engine = RuleEngine(user_rules_path=user_file, project_rules_path=project_file)
         assert engine.evaluate("Bash", "rm -rf build/") == "deny"
 
@@ -245,13 +265,17 @@ class TestRuleEngine:
         tmpdir = Path(tempfile.mkdtemp())
         local_path = tmpdir / ".mewcode" / "permissions.local.yaml"
         engine = RuleEngine(local_rules_path=local_path)
-        engine.append_local_rule(Rule(tool_name="Bash", pattern="git commit *", effect="allow"))
+        engine.append_local_rule(
+            Rule(tool_name="Bash", pattern="git commit *", effect="allow")
+        )
         assert local_path.exists()
         assert engine.evaluate("Bash", "git commit -m test") == "allow"
+
 
 # ===========================================================================
 # 第四层：PermissionMode（权限模式）
 # ===========================================================================
+
 
 class TestPermissionMode:
     def test_default_mode(self) -> None:
@@ -276,9 +300,11 @@ class TestPermissionMode:
 
     # CUSTOM and DONT_ASK modes removed — aligned to Go's 4-mode spec
 
+
 # ===========================================================================
 # 第五层（综合）：PermissionChecker —— 五层协同
 # ===========================================================================
+
 
 class TestPermissionChecker:
     def setup_method(self) -> None:
@@ -292,6 +318,7 @@ class TestPermissionChecker:
 
     def test_dangerous_command_denied(self) -> None:
         from mewcode.tools.bash import Bash
+
         tool = Bash()
         d = self.checker.check(tool, {"command": "rm -rf /"})
         assert d.effect == "deny"
@@ -299,6 +326,7 @@ class TestPermissionChecker:
 
     def test_write_path_outside_sandbox_asks(self) -> None:
         from mewcode.tools.write_file import WriteFile
+
         tool = WriteFile()
         d = self.checker.check(tool, {"file_path": "/etc/passwd", "content": "x"})
         assert d.effect == "ask"
@@ -306,6 +334,7 @@ class TestPermissionChecker:
 
     def test_read_path_outside_sandbox_asks(self) -> None:
         from mewcode.tools.read_file import ReadFile
+
         tool = ReadFile()
         d = self.checker.check(tool, {"file_path": "/etc/passwd"})
         assert d.effect == "ask"
@@ -313,6 +342,7 @@ class TestPermissionChecker:
 
     def test_read_tool_allowed_by_default_mode(self) -> None:
         from mewcode.tools.read_file import ReadFile
+
         tool = ReadFile()
         test_file = self.tmpdir / "hello.txt"
         test_file.write_text("hi")
@@ -321,25 +351,33 @@ class TestPermissionChecker:
 
     def test_write_tool_asks_in_default_mode(self) -> None:
         from mewcode.tools.write_file import WriteFile
+
         tool = WriteFile()
-        d = self.checker.check(tool, {"file_path": str(self.tmpdir / "new.txt"), "content": "hi"})
+        d = self.checker.check(
+            tool, {"file_path": str(self.tmpdir / "new.txt"), "content": "hi"}
+        )
         assert d.effect == "ask"
 
     def test_bash_asks_in_default_mode(self) -> None:
         from mewcode.tools.bash import Bash
+
         tool = Bash()
         d = self.checker.check(tool, {"command": "npm test"})
         assert d.effect == "ask"
 
     def test_plan_mode_asks_write(self) -> None:
         from mewcode.tools.write_file import WriteFile
+
         self.checker.mode = PermissionMode.PLAN
         tool = WriteFile()
-        d = self.checker.check(tool, {"file_path": str(self.tmpdir / "x.txt"), "content": "hi"})
+        d = self.checker.check(
+            tool, {"file_path": str(self.tmpdir / "x.txt"), "content": "hi"}
+        )
         assert d.effect == "ask"
 
     def test_bypass_mode_allows_all(self) -> None:
         from mewcode.tools.bash import Bash
+
         self.checker.mode = PermissionMode.BYPASS
         tool = Bash()
         d = self.checker.check(tool, {"command": "npm test"})
@@ -347,6 +385,7 @@ class TestPermissionChecker:
 
     def test_bypass_still_blocks_dangerous(self) -> None:
         from mewcode.tools.bash import Bash
+
         self.checker.mode = PermissionMode.BYPASS
         tool = Bash()
         d = self.checker.check(tool, {"command": "rm -rf /"})
@@ -354,11 +393,16 @@ class TestPermissionChecker:
 
     def test_rule_overrides_mode(self) -> None:
         from mewcode.tools.bash import Bash
+
         tmpdir = Path(tempfile.mkdtemp())
         rules_file = tmpdir / "rules.yaml"
-        rules_file.write_text(yaml.dump([
-            {"rule": "Bash(git *)", "effect": "allow"},
-        ]))
+        rules_file.write_text(
+            yaml.dump(
+                [
+                    {"rule": "Bash(git *)", "effect": "allow"},
+                ]
+            )
+        )
         checker = PermissionChecker(
             detector=DangerousCommandDetector(),
             sandbox=PathSandbox(str(tmpdir)),
@@ -369,9 +413,11 @@ class TestPermissionChecker:
         d = checker.check(tool, {"command": "git commit -m test"})
         assert d.effect == "allow"
 
+
 # ===========================================================================
 # 集成测试：Agent + 权限系统（端到端）
 # ===========================================================================
+
 
 class MockLLMClient(LLMClient):
     def __init__(self, responses: list[list[StreamEvent]]) -> None:
@@ -393,10 +439,16 @@ class MockLLMClient(LLMClient):
         for e in events:
             yield e
 
+
 def _collect(events: list) -> dict[str, list]:
     result: dict[str, list] = {
-        "text": [], "tool_use": [], "tool_result": [],
-        "turn": [], "loop": [], "usage": [], "error": [],
+        "text": [],
+        "tool_use": [],
+        "tool_result": [],
+        "turn": [],
+        "loop": [],
+        "usage": [],
+        "error": [],
         "permission": [],
     }
     for e in events:
@@ -418,23 +470,26 @@ def _collect(events: list) -> dict[str, list]:
             result["permission"].append(e)
     return result
 
+
 @pytest.mark.asyncio
 async def test_e2e_dangerous_command_blocked_loop_continues():
     """危险命令被拦截，错误返回给模型，循环继续。"""
     tmpdir = Path(tempfile.mkdtemp())
-    client = MockLLMClient([
-        # 第 1 轮：模型尝试执行 rm -rf /
+    client = MockLLMClient(
         [
-            TextDelta("Let me clean up."),
-            ToolCallComplete("t1", "Bash", {"command": "rm -rf /"}),
-            StreamEnd("end_turn", input_tokens=10, output_tokens=20),
-        ],
-        # 第 2 轮：模型调整策略
-        [
-            TextDelta("That was blocked, let me try something else."),
-            StreamEnd("end_turn", input_tokens=30, output_tokens=15),
-        ],
-    ])
+            # 第 1 轮：模型尝试执行 rm -rf /
+            [
+                TextDelta("Let me clean up."),
+                ToolCallComplete("t1", "Bash", {"command": "rm -rf /"}),
+                StreamEnd("end_turn", input_tokens=10, output_tokens=20),
+            ],
+            # 第 2 轮：模型调整策略
+            [
+                TextDelta("That was blocked, let me try something else."),
+                StreamEnd("end_turn", input_tokens=30, output_tokens=15),
+            ],
+        ]
+    )
     registry = create_default_registry()
     checker = PermissionChecker(
         detector=DangerousCommandDetector(),
@@ -442,7 +497,9 @@ async def test_e2e_dangerous_command_blocked_loop_continues():
         rule_engine=RuleEngine(),
         mode=PermissionMode.BYPASS,
     )
-    agent = Agent(client, registry, "anthropic", work_dir=str(tmpdir), permission_checker=checker)
+    agent = Agent(
+        client, registry, "anthropic", work_dir=str(tmpdir), permission_checker=checker
+    )
     conv = ConversationManager()
     conv.add_user_message("Clean up")
 
@@ -453,24 +510,33 @@ async def test_e2e_dangerous_command_blocked_loop_continues():
     c = _collect(events)
     assert len(c["tool_result"]) == 1
     assert c["tool_result"][0].is_error
-    assert "denied" in c["tool_result"][0].output.lower() or "拒绝" in c["tool_result"][0].output or "危险" in c["tool_result"][0].output
+    assert (
+        "denied" in c["tool_result"][0].output.lower()
+        or "拒绝" in c["tool_result"][0].output
+        or "危险" in c["tool_result"][0].output
+    )
     assert len(c["loop"]) == 1
     assert c["loop"][0].total_turns == 2
+
 
 @pytest.mark.asyncio
 async def test_e2e_sandbox_outside_path_asks():
     """写入沙箱外的文件会触发 Ask，用户拒绝后返回错误。"""
     tmpdir = Path(tempfile.mkdtemp())
-    client = MockLLMClient([
+    client = MockLLMClient(
         [
-            ToolCallComplete("t1", "WriteFile", {"file_path": "/etc/passwd", "content": "x"}),
-            StreamEnd("end_turn", input_tokens=10, output_tokens=20),
-        ],
-        [
-            TextDelta("Cannot write that file."),
-            StreamEnd("end_turn", input_tokens=30, output_tokens=15),
-        ],
-    ])
+            [
+                ToolCallComplete(
+                    "t1", "WriteFile", {"file_path": "/etc/passwd", "content": "x"}
+                ),
+                StreamEnd("end_turn", input_tokens=10, output_tokens=20),
+            ],
+            [
+                TextDelta("Cannot write that file."),
+                StreamEnd("end_turn", input_tokens=30, output_tokens=15),
+            ],
+        ]
+    )
     registry = create_default_registry()
     checker = PermissionChecker(
         detector=DangerousCommandDetector(),
@@ -478,7 +544,9 @@ async def test_e2e_sandbox_outside_path_asks():
         rule_engine=RuleEngine(),
         mode=PermissionMode.DEFAULT,
     )
-    agent = Agent(client, registry, "anthropic", work_dir=str(tmpdir), permission_checker=checker)
+    agent = Agent(
+        client, registry, "anthropic", work_dir=str(tmpdir), permission_checker=checker
+    )
     conv = ConversationManager()
     conv.add_user_message("Write /etc/passwd")
 
@@ -492,6 +560,7 @@ async def test_e2e_sandbox_outside_path_asks():
     assert len(c["tool_result"]) == 1
     assert c["tool_result"][0].is_error
 
+
 @pytest.mark.asyncio
 async def test_e2e_rule_allows_git():
     """放行 git 命令的规则可以让其无需人工介入（HITL）直接通过。"""
@@ -500,16 +569,18 @@ async def test_e2e_rule_allows_git():
     rules_file.parent.mkdir(parents=True)
     rules_file.write_text(yaml.dump([{"rule": "Bash(git *)", "effect": "allow"}]))
 
-    client = MockLLMClient([
+    client = MockLLMClient(
         [
-            ToolCallComplete("t1", "Bash", {"command": "git status"}),
-            StreamEnd("end_turn", input_tokens=10, output_tokens=20),
-        ],
-        [
-            TextDelta("Done."),
-            StreamEnd("end_turn", input_tokens=30, output_tokens=15),
-        ],
-    ])
+            [
+                ToolCallComplete("t1", "Bash", {"command": "git status"}),
+                StreamEnd("end_turn", input_tokens=10, output_tokens=20),
+            ],
+            [
+                TextDelta("Done."),
+                StreamEnd("end_turn", input_tokens=30, output_tokens=15),
+            ],
+        ]
+    )
     registry = create_default_registry()
     checker = PermissionChecker(
         detector=DangerousCommandDetector(),
@@ -517,7 +588,9 @@ async def test_e2e_rule_allows_git():
         rule_engine=RuleEngine(project_rules_path=rules_file),
         mode=PermissionMode.DEFAULT,
     )
-    agent = Agent(client, registry, "anthropic", work_dir=str(tmpdir), permission_checker=checker)
+    agent = Agent(
+        client, registry, "anthropic", work_dir=str(tmpdir), permission_checker=checker
+    )
     conv = ConversationManager()
     conv.add_user_message("Show git status")
 
@@ -530,23 +603,30 @@ async def test_e2e_rule_allows_git():
     assert not c["tool_result"][0].is_error
     assert len(c["permission"]) == 0
 
+
 @pytest.mark.asyncio
 async def test_e2e_default_mode_write_triggers_ask():
     """在默认模式下，写类工具会产生 ASK 决策 → 触发 PermissionRequest 事件。"""
     tmpdir = Path(tempfile.mkdtemp())
-    client = MockLLMClient([
+    client = MockLLMClient(
         [
-            ToolCallComplete("t1", "WriteFile", {
-                "file_path": str(tmpdir / "test.txt"),
-                "content": "hello",
-            }),
-            StreamEnd("end_turn", input_tokens=10, output_tokens=20),
-        ],
-        [
-            TextDelta("Done."),
-            StreamEnd("end_turn", input_tokens=30, output_tokens=15),
-        ],
-    ])
+            [
+                ToolCallComplete(
+                    "t1",
+                    "WriteFile",
+                    {
+                        "file_path": str(tmpdir / "test.txt"),
+                        "content": "hello",
+                    },
+                ),
+                StreamEnd("end_turn", input_tokens=10, output_tokens=20),
+            ],
+            [
+                TextDelta("Done."),
+                StreamEnd("end_turn", input_tokens=30, output_tokens=15),
+            ],
+        ]
+    )
     registry = create_default_registry()
     checker = PermissionChecker(
         detector=DangerousCommandDetector(),
@@ -554,7 +634,9 @@ async def test_e2e_default_mode_write_triggers_ask():
         rule_engine=RuleEngine(),
         mode=PermissionMode.DEFAULT,
     )
-    agent = Agent(client, registry, "anthropic", work_dir=str(tmpdir), permission_checker=checker)
+    agent = Agent(
+        client, registry, "anthropic", work_dir=str(tmpdir), permission_checker=checker
+    )
     conv = ConversationManager()
     conv.add_user_message("Write a file")
 
@@ -572,6 +654,7 @@ async def test_e2e_default_mode_write_triggers_ask():
     assert len(c["tool_result"]) == 1
     assert not c["tool_result"][0].is_error
 
+
 @pytest.mark.asyncio
 async def test_e2e_bypass_mode_allows_all():
     """Bypass 模式无需询问，放行一切操作。"""
@@ -580,19 +663,25 @@ async def test_e2e_bypass_mode_allows_all():
     # 因为 WriteFile 仅对已存在的文件执行该校验。
     test_file = tmpdir / "new_file.txt"
 
-    client = MockLLMClient([
+    client = MockLLMClient(
         [
-            ToolCallComplete("t1", "WriteFile", {
-                "file_path": str(test_file),
-                "content": "created",
-            }),
-            StreamEnd("end_turn", input_tokens=10, output_tokens=20),
-        ],
-        [
-            TextDelta("Done."),
-            StreamEnd("end_turn", input_tokens=30, output_tokens=10),
-        ],
-    ])
+            [
+                ToolCallComplete(
+                    "t1",
+                    "WriteFile",
+                    {
+                        "file_path": str(test_file),
+                        "content": "created",
+                    },
+                ),
+                StreamEnd("end_turn", input_tokens=10, output_tokens=20),
+            ],
+            [
+                TextDelta("Done."),
+                StreamEnd("end_turn", input_tokens=30, output_tokens=10),
+            ],
+        ]
+    )
     registry = create_default_registry()
     checker = PermissionChecker(
         detector=DangerousCommandDetector(),
@@ -600,7 +689,9 @@ async def test_e2e_bypass_mode_allows_all():
         rule_engine=RuleEngine(),
         mode=PermissionMode.BYPASS,
     )
-    agent = Agent(client, registry, "anthropic", work_dir=str(tmpdir), permission_checker=checker)
+    agent = Agent(
+        client, registry, "anthropic", work_dir=str(tmpdir), permission_checker=checker
+    )
     conv = ConversationManager()
     conv.add_user_message("Create the file")
 
@@ -614,20 +705,23 @@ async def test_e2e_bypass_mode_allows_all():
     assert not c["tool_result"][0].is_error
     assert test_file.read_text() == "created"
 
+
 @pytest.mark.asyncio
 async def test_e2e_user_denies_operation():
     """用户通过人工介入（HITL）拒绝操作，模型收到错误并调整策略。"""
     tmpdir = Path(tempfile.mkdtemp())
-    client = MockLLMClient([
+    client = MockLLMClient(
         [
-            ToolCallComplete("t1", "Bash", {"command": "npm install something"}),
-            StreamEnd("end_turn", input_tokens=10, output_tokens=20),
-        ],
-        [
-            TextDelta("User denied, I'll skip that."),
-            StreamEnd("end_turn", input_tokens=30, output_tokens=15),
-        ],
-    ])
+            [
+                ToolCallComplete("t1", "Bash", {"command": "npm install something"}),
+                StreamEnd("end_turn", input_tokens=10, output_tokens=20),
+            ],
+            [
+                TextDelta("User denied, I'll skip that."),
+                StreamEnd("end_turn", input_tokens=30, output_tokens=15),
+            ],
+        ]
+    )
     registry = create_default_registry()
     checker = PermissionChecker(
         detector=DangerousCommandDetector(),
@@ -635,7 +729,9 @@ async def test_e2e_user_denies_operation():
         rule_engine=RuleEngine(),
         mode=PermissionMode.DEFAULT,
     )
-    agent = Agent(client, registry, "anthropic", work_dir=str(tmpdir), permission_checker=checker)
+    agent = Agent(
+        client, registry, "anthropic", work_dir=str(tmpdir), permission_checker=checker
+    )
     conv = ConversationManager()
     conv.add_user_message("Install something")
 
@@ -655,17 +751,23 @@ async def test_e2e_user_denies_operation():
     assert len(c["loop"]) == 1
     assert c["loop"][0].total_turns == 2
 
+
 # ===========================================================================
 # 沙箱自动放行：deny/ask 规则不被绕过，复合命令逐条检查
 # ===========================================================================
+
 
 class TestSandboxAutoAllowRespectsDenyAsk:
     def test_compound_command_deny(self) -> None:
         tmpdir = Path(tempfile.mkdtemp())
         rules_file = tmpdir / "rules.yaml"
-        rules_file.write_text(yaml.dump([
-            {"rule": "Bash(rm -rf /)", "effect": "deny"},
-        ]))
+        rules_file.write_text(
+            yaml.dump(
+                [
+                    {"rule": "Bash(rm -rf /)", "effect": "deny"},
+                ]
+            )
+        )
         checker = PermissionChecker(
             detector=DangerousCommandDetector(),
             sandbox=PathSandbox(str(tmpdir)),
@@ -674,6 +776,7 @@ class TestSandboxAutoAllowRespectsDenyAsk:
             sandbox_enabled=True,
         )
         from mewcode.tools.bash import Bash
+
         tool = Bash()
         d = checker.check(tool, {"command": "echo ok && rm -rf /"})
         assert d.effect == "deny"
@@ -681,9 +784,13 @@ class TestSandboxAutoAllowRespectsDenyAsk:
     def test_safe_command_allows_with_sandbox(self) -> None:
         tmpdir = Path(tempfile.mkdtemp())
         rules_file = tmpdir / "rules.yaml"
-        rules_file.write_text(yaml.dump([
-            {"rule": "Bash(rm -rf /)", "effect": "deny"},
-        ]))
+        rules_file.write_text(
+            yaml.dump(
+                [
+                    {"rule": "Bash(rm -rf /)", "effect": "deny"},
+                ]
+            )
+        )
         checker = PermissionChecker(
             detector=DangerousCommandDetector(),
             sandbox=PathSandbox(str(tmpdir)),
@@ -692,6 +799,7 @@ class TestSandboxAutoAllowRespectsDenyAsk:
             sandbox_enabled=True,
         )
         from mewcode.tools.bash import Bash
+
         tool = Bash()
         d = checker.check(tool, {"command": "go test ./..."})
         assert d.effect == "allow"
@@ -699,9 +807,13 @@ class TestSandboxAutoAllowRespectsDenyAsk:
     def test_ask_rule_not_overridden_by_sandbox(self) -> None:
         tmpdir = Path(tempfile.mkdtemp())
         rules_file = tmpdir / "rules.yaml"
-        rules_file.write_text(yaml.dump([
-            {"rule": "Bash(git push origin main)", "effect": "ask"},
-        ]))
+        rules_file.write_text(
+            yaml.dump(
+                [
+                    {"rule": "Bash(git push origin main)", "effect": "ask"},
+                ]
+            )
+        )
         checker = PermissionChecker(
             detector=DangerousCommandDetector(),
             sandbox=PathSandbox(str(tmpdir)),
@@ -710,6 +822,7 @@ class TestSandboxAutoAllowRespectsDenyAsk:
             sandbox_enabled=True,
         )
         from mewcode.tools.bash import Bash
+
         tool = Bash()
         d = checker.check(tool, {"command": "git push origin main"})
         assert d.effect == "ask"

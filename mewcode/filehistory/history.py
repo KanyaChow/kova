@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 import hashlib
@@ -31,7 +26,6 @@ class Snapshot:
 
 
 class FileHistory:
-
     def __init__(self, base_dir: str, session_id: str) -> None:
         self._session_dir = Path(base_dir) / ".mewcode" / "file-history" / session_id
         self._session_dir.mkdir(parents=True, exist_ok=True)
@@ -70,15 +64,19 @@ class FileHistory:
                     except (FileNotFoundError, OSError):
                         pass
                 backups[path] = Backup(
-                    backup_path=str(bp), version=ver, timestamp=time.time(),
+                    backup_path=str(bp),
+                    version=ver,
+                    timestamp=time.time(),
                 )
 
-            self._snapshots.append(Snapshot(
-                message_index=msg_index,
-                user_text=user_text,
-                backups=backups,
-                timestamp=time.time(),
-            ))
+            self._snapshots.append(
+                Snapshot(
+                    message_index=msg_index,
+                    user_text=user_text,
+                    backups=backups,
+                    timestamp=time.time(),
+                )
+            )
             if len(self._snapshots) > MAX_SNAPSHOTS:
                 self._snapshots = self._snapshots[-MAX_SNAPSHOTS:]
 

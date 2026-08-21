@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 from textual.app import ComposeResult
@@ -35,8 +31,6 @@ class InlinePermissionWidget(Vertical, can_focus=True):
     ]
 
     class Responded(Message):
-
-
         def __init__(self, response: PermissionResponse) -> None:
             super().__init__()
             self.response = response
@@ -49,7 +43,6 @@ class InlinePermissionWidget(Vertical, can_focus=True):
 
     def compose(self) -> ComposeResult:
         yield Static(self._build_content(), id="perm-content")
-
 
     def on_mount(self) -> None:
         self.focus()
@@ -69,7 +62,6 @@ class InlinePermissionWidget(Vertical, can_focus=True):
 
         return "\n".join(lines)
 
-
     def _refresh(self) -> None:
         content = self.query_one("#perm-content", Static)
         content.update(self._build_content())
@@ -87,7 +79,6 @@ class InlinePermissionWidget(Vertical, can_focus=True):
     def action_select(self) -> None:
         _, response = _PERM_OPTIONS[self._cursor]
         self.post_message(self.Responded(response))
-
 
     def action_deny(self) -> None:
         self.post_message(self.Responded(PermissionResponse.DENY))

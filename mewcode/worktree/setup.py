@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import fnmatch
@@ -106,8 +102,12 @@ def _copy_ignored_files(root: Path, wt: Path) -> None:
     try:
         result = subprocess.run(
             [
-                "git", "ls-files",
-                "--others", "--ignored", "--exclude-standard", "--directory",
+                "git",
+                "ls-files",
+                "--others",
+                "--ignored",
+                "--exclude-standard",
+                "--directory",
             ],
             cwd=str(root),
             capture_output=True,

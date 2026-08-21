@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 """OS 级沙箱：限制 Bash 命令的文件写入和网络访问。
 
 macOS 使用 sandbox-exec（Seatbelt），Linux 使用 bubblewrap（bwrap）。
@@ -54,8 +49,10 @@ def create_sandbox() -> Sandbox | None:
     system = platform.system()
     if system == "Darwin":
         from .seatbelt import SeatbeltSandbox
+
         return SeatbeltSandbox()
     elif system == "Linux":
         from .bwrap import BwrapSandbox
+
         return BwrapSandbox()
     return None

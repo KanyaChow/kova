@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 import time
@@ -19,16 +14,21 @@ from mewcode.context.manager import (
     build_recovery_attachment,
 )
 
+
 def test_recovery_attachment_empty_when_nothing_recorded():
     assert build_recovery_attachment(None, None) == ""
     assert build_recovery_attachment(RecoveryState(), None) == ""
+
 
 def test_recovery_attachment_emits_all_sections():
     state = RecoveryState()
     state.record_file_read("/tmp/a.py", "print('hi')\n")
     state.record_skill_invocation("planner", "step 1\nstep 2\n")
     schemas = [
-        {"name": "ReadFile", "description": "Read a file and return contents.\nWith line numbers."},
+        {
+            "name": "ReadFile",
+            "description": "Read a file and return contents.\nWith line numbers.",
+        },
         {"name": "Bash", "description": ""},
     ]
     out = build_recovery_attachment(state, schemas)
@@ -37,6 +37,7 @@ def test_recovery_attachment_emits_all_sections():
     assert "- ReadFile — Read a file and return contents." in out
     assert "- Bash" in out
     assert "提示" in out  # 结尾提示部分的标题
+
 
 def test_recovery_file_limit_and_order():
     state = RecoveryState()
@@ -52,12 +53,14 @@ def test_recovery_file_limit_and_order():
     assert files[0].path == "/f6"  # 最新的排在最前
     assert files[-1].path == "/f2"
 
+
 def test_recovery_truncates_per_file():
     huge = "x" * int(RECOVERY_TOKENS_PER_FILE * _RECOVERY_CHARS_PER_TOKEN * 3)
     state = RecoveryState()
     state.record_file_read("/big", huge)
     out = build_recovery_attachment(state, None)
     assert "内容已截断" in out
+
 
 def test_recovery_skills_budget():
     state = RecoveryState()

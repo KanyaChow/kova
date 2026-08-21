@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import json
@@ -55,11 +51,13 @@ def _mark_last_user_tail_for_cache(messages: list[dict[str, Any]]) -> None:
         content = msg.get("content")
         if isinstance(content, str):
             # 把字符串 content 升级为 block 形式，以便附加 cache_control。
-            msg["content"] = [{
-                "type": "text",
-                "text": content,
-                "cache_control": _EPHEMERAL,
-            }]
+            msg["content"] = [
+                {
+                    "type": "text",
+                    "text": content,
+                    "cache_control": _EPHEMERAL,
+                }
+            ]
         elif isinstance(content, list) and content:
             last = content[-1]
             if isinstance(last, dict):
@@ -92,8 +90,6 @@ class AuthenticationError(LLMError):
 
 
 class RateLimitError(LLMError):
-
-
     def __init__(self, message: str, retry_after: float | None = None):
         super().__init__(message)
         self.retry_after = retry_after
@@ -120,7 +116,7 @@ class LLMClient(ABC):
 def _supports_adaptive_thinking(model: str) -> bool:
     for family in ("claude-opus-4-", "claude-sonnet-4-"):
         if model.startswith(family):
-            rest = model[len(family):]
+            rest = model[len(family) :]
             if rest and rest[0].isdigit() and int(rest[0]) >= 6:
                 return True
     return False
@@ -184,11 +180,13 @@ class AnthropicClient(LLMClient):
             "messages": messages,
         }
         if system:
-            kwargs["system"] = [{
-                "type": "text",
-                "text": system,
-                "cache_control": {"type": "ephemeral"},
-            }]
+            kwargs["system"] = [
+                {
+                    "type": "text",
+                    "text": system,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ]
         if tools:
             kwargs["tools"] = _mark_last_tool_for_cache(tools)
 
@@ -277,7 +275,10 @@ class AnthropicClient(LLMClient):
                             v = getattr(delta_usage, "cache_read_input_tokens", 0) or 0
                             if v:
                                 delta_cache_read = v
-                            v = getattr(delta_usage, "cache_creation_input_tokens", 0) or 0
+                            v = (
+                                getattr(delta_usage, "cache_creation_input_tokens", 0)
+                                or 0
+                            )
                             if v:
                                 delta_cache_creation = v
                     elif event.type == "message_stop":
@@ -287,9 +288,7 @@ class AnthropicClient(LLMClient):
                 usage = final.usage
                 input_tokens = usage.input_tokens
                 cache_read = getattr(usage, "cache_read_input_tokens", 0) or 0
-                cache_creation = getattr(
-                    usage, "cache_creation_input_tokens", 0
-                ) or 0
+                cache_creation = getattr(usage, "cache_creation_input_tokens", 0) or 0
 
                 # 当 message_start 报告 input_tokens=0 时（MiniMax 等兼容
                 # provider 的行为），降级使用 message_delta 中捕获的值。
@@ -372,7 +371,9 @@ class OpenAIClient(LLMClient):
                     reasoning_text += event.delta
                     yield ThinkingDelta(text=event.delta)
                 elif event.type == "response.reasoning_summary_text.done":
-                    yield ThinkingComplete(thinking=reasoning_text, signature=reasoning_id)
+                    yield ThinkingComplete(
+                        thinking=reasoning_text, signature=reasoning_id
+                    )
                 elif event.type == "response.function_call_arguments.delta":
                     if not current_tool_name:
                         current_tool_name = getattr(event, "name", "") or ""
@@ -487,14 +488,16 @@ class OpenAICompatClient(LLMClient):
         """
         converted: list[dict[str, Any]] = []
         for t in tools:
-            converted.append({
-                "type": "function",
-                "function": {
-                    "name": t["name"],
-                    "description": t.get("description", ""),
-                    "parameters": t.get("parameters", t.get("input_schema", {})),
-                },
-            })
+            converted.append(
+                {
+                    "type": "function",
+                    "function": {
+                        "name": t["name"],
+                        "description": t.get("description", ""),
+                        "parameters": t.get("parameters", t.get("input_schema", {})),
+                    },
+                }
+            )
         return converted
 
     async def stream(
@@ -536,9 +539,7 @@ class OpenAICompatClient(LLMClient):
                         # 上报 cache 命中数，大多数不上报（cache_read 保持 0）。
                         # prompt_tokens 包含了缓存 token，需要减去以保持
                         # input + cache_read 可加性。没有 provider 上报 creation 计数。
-                        details = getattr(
-                            chunk.usage, "prompt_tokens_details", None
-                        )
+                        details = getattr(chunk.usage, "prompt_tokens_details", None)
                         cache_read = getattr(details, "cached_tokens", 0) or 0
                         prompt_tokens = chunk.usage.prompt_tokens or 0
                         yield StreamEnd(

@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from mewcode.commands.registry import Command, CommandContext, CommandType
@@ -20,6 +15,7 @@ async def handle_clear(ctx: CommandContext) -> None:
         # 用新 session ID 重建 file history
         if ctx.agent:
             from mewcode.filehistory import FileHistory
+
             file_history = FileHistory(ctx.agent._work_dir, new_session.session_id)
             ctx.agent.file_history = file_history
             for tool in ctx.agent.registry.list_tools():
@@ -47,4 +43,3 @@ CLEAR_COMMAND = Command(
     type=CommandType.LOCAL_UI,
     handler=handle_clear,
 )
-

@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import json
@@ -13,7 +9,12 @@ from enum import Enum
 from pathlib import Path
 from typing import IO, Any
 
-from mewcode.conversation import ConversationManager, Message, ToolResultBlock, ToolUseBlock
+from mewcode.conversation import (
+    ConversationManager,
+    Message,
+    ToolResultBlock,
+    ToolUseBlock,
+)
 
 SESSIONS_DIR = ".mewcode/sessions"
 DEFAULT_MAX_AGE_DAYS = 30
@@ -63,7 +64,6 @@ class SessionRecord:
             data["is_error"] = self.is_error
         return json.dumps(data, ensure_ascii=False)
 
-
     @classmethod
     def from_jsonl(cls, line: str) -> SessionRecord | None:
         try:
@@ -109,11 +109,17 @@ class SessionRecord:
                         }
                     )
                 records.append(
-                    cls(type=RecordType.ASSISTANT, content=content_blocks, timestamp=now)
+                    cls(
+                        type=RecordType.ASSISTANT, content=content_blocks, timestamp=now
+                    )
                 )
             else:
                 records.append(
-                    cls(type=RecordType.ASSISTANT, content=message.content, timestamp=now)
+                    cls(
+                        type=RecordType.ASSISTANT,
+                        content=message.content,
+                        timestamp=now,
+                    )
                 )
         else:
             records.append(
@@ -232,7 +238,8 @@ def records_to_messages(records: list[SessionRecord]) -> list[Message]:
             messages.append(
                 Message(
                     role="user",
-                    content="本次会话延续自之前的对话，因上下文空间不足进行了压缩。以下是早期对话的摘要：\n\n" + (record.content or ""),
+                    content="本次会话延续自之前的对话，因上下文空间不足进行了压缩。以下是早期对话的摘要：\n\n"
+                    + (record.content or ""),
                 )
             )
             continue
@@ -243,7 +250,13 @@ def records_to_messages(records: list[SessionRecord]) -> list[Message]:
             # 权威的那一条；但在此展开可以保证 records_to_messages 对任何
             # 直接调用者都保持自洽。
             summary, keep_messages = parse_compact_boundary(record)
-            messages.append(Message(role="user", content="本次会话延续自之前的对话，因上下文空间不足进行了压缩。以下是早期对话的摘要：\n\n" + summary))
+            messages.append(
+                Message(
+                    role="user",
+                    content="本次会话延续自之前的对话，因上下文空间不足进行了压缩。以下是早期对话的摘要：\n\n"
+                    + summary,
+                )
+            )
             messages.extend(keep_messages)
             continue
 
@@ -270,9 +283,7 @@ def records_to_messages(records: list[SessionRecord]) -> list[Message]:
                     Message(role="assistant", content=text, tool_uses=tool_uses)
                 )
             else:
-                messages.append(
-                    Message(role="assistant", content=record.content or "")
-                )
+                messages.append(Message(role="assistant", content=record.content or ""))
 
     if pending_tool_results:
         messages.append(
@@ -398,7 +409,6 @@ class Session:
         self.meta.last_active = datetime.now(timezone.utc)
         self.meta.save(self._sessions_dir / f"{self.session_id}.meta")
 
-
     def close(self) -> None:
         if self._file and not self._file.closed:
             self._file.flush()
@@ -441,9 +451,7 @@ async def generate_session_summary(
 
     collected = ""
     try:
-        async for event in client.stream(
-            summary_conv, system=SESSION_SUMMARY_PROMPT
-        ):
+        async for event in client.stream(summary_conv, system=SESSION_SUMMARY_PROMPT):
             if isinstance(event, TextDelta):
                 collected += event.text
             elif isinstance(event, StreamEnd):
@@ -470,7 +478,6 @@ class SessionManager:
         self._sessions_dir = Path(work_dir) / SESSIONS_DIR
         self._sessions_dir.mkdir(parents=True, exist_ok=True)
 
-
     def create(self) -> Session:
         session_id = _generate_session_id()
         jsonl_path = self._sessions_dir / f"{session_id}.jsonl"
@@ -484,7 +491,6 @@ class SessionManager:
             meta=meta,
             sessions_dir=self._sessions_dir,
         )
-
 
     def list(self) -> list[SessionMeta]:
         metas: list[SessionMeta] = []

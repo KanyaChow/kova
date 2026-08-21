@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from mewcode.commands.registry import Command, CommandContext, CommandType
@@ -28,9 +23,7 @@ async def handle_permission(ctx: CommandContext) -> None:
             tiers = checker.rule_engine._load_tiers()
             rule_count = sum(len(t) for t in tiers)
         ctx.ui.add_system_message(
-            f"权限状态\n"
-            f"  当前模式: {mode.value}\n"
-            f"  规则数量: {rule_count}"
+            f"权限状态\n  当前模式: {mode.value}\n  规则数量: {rule_count}"
         )
 
     elif sub == "mode":
@@ -71,6 +64,7 @@ async def handle_permission(ctx: CommandContext) -> None:
             ctx.ui.add_system_message("用法: /permission add <规则> <效果>")
             return
         from mewcode.permissions.rules import Rule, parse_rule
+
         rule_parts = rule_str.rsplit(None, 1)
         if len(rule_parts) < 2 or rule_parts[1] not in ("allow", "deny"):
             ctx.ui.add_system_message(
@@ -86,10 +80,11 @@ async def handle_permission(ctx: CommandContext) -> None:
         checker = ctx.agent.permission_checker
         if checker and checker.rule_engine:
             checker.rule_engine.append_local_rule(rule)
-            ctx.ui.add_system_message(f"规则已添加: {rule.tool_name}({rule.pattern}) → {rule.effect}")
+            ctx.ui.add_system_message(
+                f"规则已添加: {rule.tool_name}({rule.pattern}) → {rule.effect}"
+            )
         else:
             ctx.ui.add_system_message("规则引擎未初始化")
-
 
     elif sub == "reset":
         checker = ctx.agent.permission_checker
@@ -114,4 +109,3 @@ PERMISSION_COMMAND = Command(
     type=CommandType.LOCAL,
     handler=handle_permission,
 )
-

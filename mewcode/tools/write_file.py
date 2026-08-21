@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -30,11 +25,11 @@ class WriteFile(Tool):
     params_model = Params
     category = "write"
 
-
-    def __init__(self, file_history: Any = None, file_state_cache: FileStateCache | None = None) -> None:
+    def __init__(
+        self, file_history: Any = None, file_state_cache: FileStateCache | None = None
+    ) -> None:
         self.file_history = file_history
         self._state_cache = file_state_cache
-
 
     async def execute(self, params: Params) -> ToolResult:
         if self.file_history is not None:

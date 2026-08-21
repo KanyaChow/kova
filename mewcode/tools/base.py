@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -35,7 +31,6 @@ class Tool(ABC):
     @property
     def is_read_only(self) -> bool:
         return self.category == "read"
-
 
     def get_schema(self) -> dict[str, Any]:
         schema = self.params_model.model_json_schema()
@@ -102,4 +97,12 @@ class StreamEnd:
     cache_creation: int = 0
 
 
-StreamEvent = TextDelta | ThinkingDelta | ThinkingComplete | ToolCallStart | ToolCallDelta | ToolCallComplete | StreamEnd
+StreamEvent = (
+    TextDelta
+    | ThinkingDelta
+    | ThinkingComplete
+    | ToolCallStart
+    | ToolCallDelta
+    | ToolCallComplete
+    | StreamEnd
+)

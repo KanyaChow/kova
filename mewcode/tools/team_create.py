@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -36,7 +31,7 @@ class TeamCreateTool(Tool):
         "2. **Spawn teammates** using the Agent tool with team_name and name parameters "
         "— this is REQUIRED to create long-running team members\n"
         "3. Teammates work independently and communicate via **SendMessage**\n"
-        "4. When a teammate finishes, it sends its result to \"lead\" via SendMessage, then goes idle\n"
+        '4. When a teammate finishes, it sends its result to "lead" via SendMessage, then goes idle\n'
         "5. The lead collects and synthesizes all teammate results\n\n"
         "## CRITICAL: Spawning Teammates\n\n"
         "To add a member to a team, you MUST pass both team_name and name to the Agent tool:\n"
@@ -60,7 +55,6 @@ class TeamCreateTool(Tool):
     category = "command"
     is_concurrency_safe = False
 
-
     def __init__(
         self,
         team_manager: TeamManager,
@@ -74,7 +68,6 @@ class TeamCreateTool(Tool):
         self._teammate_mode = teammate_mode
         self._is_interactive = is_interactive
         self._enable_coordinator_mode = enable_coordinator_mode
-
 
     async def execute(self, params: BaseModel) -> ToolResult:
         p: TeamCreateParams = params  # type: ignore[assignment]
@@ -101,16 +94,22 @@ class TeamCreateTool(Tool):
 
         coordinator_note = ""
         from mewcode.teams.coordinator import is_coordinator_mode
+
         if is_coordinator_mode(self._enable_coordinator_mode):
             from mewcode.agents.tool_filter import apply_coordinator_filter
+
             self._parent_agent._team_manager = self._team_manager
             if not self._parent_agent.coordinator_mode:
                 # 只在从"未限制"切换到"限制"时才保存全量注册表快照，
                 # 避免第二个 Team 创建时把已过滤的注册表误当成全量注册表存起来。
                 self._parent_agent._full_registry = self._parent_agent.registry
-                self._parent_agent.registry = apply_coordinator_filter(self._parent_agent.registry)
+                self._parent_agent.registry = apply_coordinator_filter(
+                    self._parent_agent.registry
+                )
                 self._parent_agent.coordinator_mode = True
-            coordinator_note = "\nCoordinator Mode activated: tools narrowed to dispatch-only."
+            coordinator_note = (
+                "\nCoordinator Mode activated: tools narrowed to dispatch-only."
+            )
 
         return ToolResult(
             output=(

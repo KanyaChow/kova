@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
@@ -40,10 +35,8 @@ class ExitWorktreeTool(Tool):
     category = "command"
     should_defer = True
 
-
     def __init__(self, worktree_manager: WorktreeManager) -> None:
         self._manager = worktree_manager
-
 
     async def execute(self, params: ExitWorktreeParams) -> ToolResult:
         session = self._manager.get_current_session()
@@ -97,9 +90,7 @@ class ExitWorktreeTool(Tool):
         try:
             await self._manager.exit(wt_name, action=action, discard_changes=discard)
         except Exception as e:
-            return ToolResult(
-                output=f"Error exiting worktree: {e}", is_error=True
-            )
+            return ToolResult(output=f"Error exiting worktree: {e}", is_error=True)
 
         if action == "keep":
             return ToolResult(

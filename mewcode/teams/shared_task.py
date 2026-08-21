@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import json
@@ -21,7 +17,6 @@ class SharedTask:
     blocked_by: list[str] = field(default_factory=list)
     created_by: str = ""
 
-
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
@@ -31,8 +26,6 @@ class SharedTask:
 
 
 class SharedTaskStore:
-
-
     def __init__(self, path: str | Path) -> None:
         self._path = Path(path)
         self._next_id = 1
@@ -54,7 +47,9 @@ class SharedTaskStore:
             "next_id": self._next_id,
             "tasks": [t.to_dict() for t in self._tasks.values()],
         }
-        self._path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+        self._path.write_text(
+            json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
 
     def create(
         self,
@@ -84,7 +79,6 @@ class SharedTaskStore:
         self._load()
         return self._tasks.get(task_id)
 
-
     def list_tasks(
         self,
         status: str | None = None,
@@ -97,7 +91,6 @@ class SharedTaskStore:
         if assignee:
             result = [t for t in result if t.assignee == assignee]
         return result
-
 
     def update(
         self,

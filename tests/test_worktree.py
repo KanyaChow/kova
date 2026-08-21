@@ -1,9 +1,5 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 """Git Worktree 管理系统的测试（第 13 章）。"""
+
 from __future__ import annotations
 
 import asyncio
@@ -26,6 +22,7 @@ from mewcode.worktree.slug import flatten_slug, validate_slug
 # =========================================================================
 # A. Slug 校验
 # =========================================================================
+
 
 class TestValidateSlug:
     def test_valid_simple(self):
@@ -72,6 +69,7 @@ class TestValidateSlug:
     def test_empty_segment(self):
         assert validate_slug("foo//bar") is not None
 
+
 class TestFlattenSlug:
     def test_no_slash(self):
         assert flatten_slug("my-feature") == "my-feature"
@@ -82,9 +80,11 @@ class TestFlattenSlug:
     def test_multiple_slashes(self):
         assert flatten_slug("a/b/c") == "a+b+c"
 
+
 # =========================================================================
 # B. 配置扩展
 # =========================================================================
+
 
 class TestWorktreeConfig:
     def test_defaults(self):
@@ -124,12 +124,13 @@ class TestWorktreeConfig:
         assert cfg.worktree.stale_cleanup_interval == 1800
         assert cfg.worktree.stale_cutoff_hours == 12
 
+
 # =========================================================================
 # H. 会话持久化
 # =========================================================================
 
-class TestSessionPersistence:
 
+class TestSessionPersistence:
     def test_save_and_load(self, tmp_path):
         session = WorktreeSession(
             original_cwd="/original",
@@ -165,9 +166,11 @@ class TestSessionPersistence:
         path.write_text("not json")
         assert load_worktree_session(tmp_path) is None
 
+
 # =========================================================================
 # 集成辅助函数
 # =========================================================================
+
 
 class TestIntegrationHelpers:
     def test_generate_worktree_name(self):
@@ -182,17 +185,26 @@ class TestIntegrationHelpers:
         assert "/wt/dir" in notice
         assert "WORKTREE CONTEXT" in notice
 
+
 # =========================================================================
 # D. WorktreeManager（需要真实的 git 仓库）
 # =========================================================================
 
+
 def _init_git_repo(path: Path) -> None:
     subprocess.run(["git", "init"], cwd=str(path), capture_output=True)
-    subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=str(path), capture_output=True)
-    subprocess.run(["git", "config", "user.name", "Test"], cwd=str(path), capture_output=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@test.com"],
+        cwd=str(path),
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test"], cwd=str(path), capture_output=True
+    )
     (path / "README.md").write_text("# Test")
     subprocess.run(["git", "add", "."], cwd=str(path), capture_output=True)
     subprocess.run(["git", "commit", "-m", "init"], cwd=str(path), capture_output=True)
+
 
 @pytest.fixture
 def git_repo(tmp_path):
@@ -201,12 +213,14 @@ def git_repo(tmp_path):
     _init_git_repo(repo)
     return repo
 
+
 @pytest.fixture
 def manager(git_repo):
     return WorktreeManager(
         repo_root=str(git_repo),
         symlink_directories=[],
     )
+
 
 class TestWorktreeManager:
     @pytest.mark.asyncio
@@ -293,9 +307,11 @@ class TestWorktreeManager:
         with pytest.raises(WorktreeError, match="not found"):
             await manager.enter("nope")
 
+
 # =========================================================================
 # F. 变更检测与自动清理
 # =========================================================================
+
 
 class TestChangeDetection:
     @pytest.mark.asyncio
@@ -314,11 +330,23 @@ class TestChangeDetection:
         wt = await manager.create("commit-wt")
         assert wt.head_commit, "head_commit should not be empty after create"
         (Path(wt.path) / "committed.txt").write_text("new")
-        subprocess.run(["git", "add", "."], cwd=wt.path, capture_output=True, check=True)
+        subprocess.run(
+            ["git", "add", "."], cwd=wt.path, capture_output=True, check=True
+        )
         result = subprocess.run(
-            ["git", "-c", "user.name=Test", "-c", "user.email=t@t",
-             "commit", "-m", "test"],
-            cwd=wt.path, capture_output=True, text=True,
+            [
+                "git",
+                "-c",
+                "user.name=Test",
+                "-c",
+                "user.email=t@t",
+                "commit",
+                "-m",
+                "test",
+            ],
+            cwd=wt.path,
+            capture_output=True,
+            text=True,
         )
         assert result.returncode == 0, f"commit failed: {result.stderr}"
         changes = count_worktree_changes(wt.path, wt.head_commit)
@@ -340,9 +368,11 @@ class TestChangeDetection:
         assert result.path == wt.path
         assert "auto-dirty" in manager.active
 
+
 # =========================================================================
 # D4. read_worktree_head_sha
 # =========================================================================
+
 
 class TestReadWorktreeHeadSha:
     @pytest.mark.asyncio

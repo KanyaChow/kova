@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from enum import StrEnum
@@ -13,11 +8,9 @@ class LifecycleEvent(StrEnum):
     SESSION_START = "session_start"
     SESSION_END = "session_end"
 
-
     # 轮次（Turn）级别
     TURN_START = "turn_start"
     TURN_END = "turn_end"
-
 
     # 工具（Tool）级别
     PRE_TOOL_USE = "pre_tool_use"
@@ -35,4 +28,3 @@ class LifecycleEvent(StrEnum):
     PERMISSION_REQUEST = "permission_request"
     FILE_CHANGE = "file_change"
     COMMAND_EXECUTE = "command_execute"
-

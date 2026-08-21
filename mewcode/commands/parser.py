@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from mewcode.commands.registry import CommandRegistry
@@ -29,7 +24,9 @@ def complete(registry: CommandRegistry, prefix: str) -> list[tuple[str, str]]:
     for cmd in registry.list_commands():
         if cmd.name in seen:
             continue
-        if cmd.name.startswith(prefix) or any(a.startswith(prefix) for a in cmd.aliases):
+        if cmd.name.startswith(prefix) or any(
+            a.startswith(prefix) for a in cmd.aliases
+        ):
             seen.add(cmd.name)
             desc = cmd.description
             if len(desc) > 30:
@@ -39,4 +36,3 @@ def complete(registry: CommandRegistry, prefix: str) -> list[tuple[str, str]]:
             matches.append((display, "/" + cmd.name))
     matches.sort(key=lambda x: x[1])
     return matches[:8]
-

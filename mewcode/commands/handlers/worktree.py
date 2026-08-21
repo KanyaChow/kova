@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -13,7 +9,6 @@ if TYPE_CHECKING:
 
 
 def create_worktree_command(manager: WorktreeManager) -> Command:
-
 
     async def handle_worktree(ctx: CommandContext) -> None:
         args = ctx.args.strip()
@@ -78,9 +73,7 @@ async def _handle_create(
         if ctx.agent:
             ctx.agent.work_dir = wt.path
     except Exception as e:
-        ctx.ui.add_system_message(
-            f"Worktree 已创建但进入失败: {e}\n路径: {wt.path}"
-        )
+        ctx.ui.add_system_message(f"Worktree 已创建但进入失败: {e}\n路径: {wt.path}")
         return
 
     ctx.ui.add_system_message(
@@ -124,7 +117,9 @@ async def _handle_enter(
         session = await manager.enter(name)
         if ctx.agent:
             ctx.agent.work_dir = session.worktree_path
-        ctx.ui.add_system_message(f"已进入 worktree: {name}\n路径: {session.worktree_path}")
+        ctx.ui.add_system_message(
+            f"已进入 worktree: {name}\n路径: {session.worktree_path}"
+        )
     except Exception as e:
         ctx.ui.add_system_message(f"进入 worktree 失败: {e}")
 
@@ -144,7 +139,9 @@ async def _handle_exit(
     action = "remove" if remove else "keep"
 
     try:
-        await manager.exit(session.worktree_name, action=action, discard_changes=discard)
+        await manager.exit(
+            session.worktree_name, action=action, discard_changes=discard
+        )
         if ctx.agent:
             ctx.agent.work_dir = session.original_cwd
         msg = f"已退出 worktree: {session.worktree_name}"

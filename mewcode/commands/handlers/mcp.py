@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from mewcode.commands.registry import Command, CommandContext, CommandType
@@ -22,7 +17,8 @@ async def handle_mcp(ctx: CommandContext) -> None:
     if mcp_mgr and hasattr(mcp_mgr, "_clients"):
         for name, client in mcp_mgr._clients.items():
             tool_names = [
-                t.name for t in ctx.agent.registry.list_tools()
+                t.name
+                for t in ctx.agent.registry.list_tools()
                 if t.name.startswith(f"mcp__{name}__")
             ]
             lines.append(f"\n  {name}: {len(tool_names)} tools")

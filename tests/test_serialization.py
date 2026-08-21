@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 """针对各 provider 序列化构建器的单元测试。
 
 会话层与具体 provider 无关；序列化逻辑位于 mewcode.serialization。
@@ -9,6 +5,7 @@
 Extended Thinking 的往返（round-trip）契约：带 tool-use 的这一轮必须把它
 带签名的 thinking block 一并回传给 API（否则 Anthropic 会返回 400）。
 """
+
 from __future__ import annotations
 
 from mewcode.conversation import (
@@ -29,7 +26,11 @@ def test_anthropic_preserves_signed_thinking_at_head():
     conv = ConversationManager()
     conv.add_assistant_message(
         "answer",
-        tool_uses=[ToolUseBlock(tool_use_id="tu-1", tool_name="Bash", arguments={"command": "ls"})],
+        tool_uses=[
+            ToolUseBlock(
+                tool_use_id="tu-1", tool_name="Bash", arguments={"command": "ls"}
+            )
+        ],
         thinking_blocks=[ThinkingBlock(thinking="let me think", signature="sig-1")],
     )
     msgs = build_anthropic_messages(conv.get_messages())
@@ -42,7 +43,9 @@ def test_anthropic_preserves_signed_thinking_at_head():
 
 def test_anthropic_tool_results_become_user_blocks():
     conv = ConversationManager()
-    conv.add_tool_results_message([ToolResultBlock(tool_use_id="tu-1", content="out", is_error=False)])
+    conv.add_tool_results_message(
+        [ToolResultBlock(tool_use_id="tu-1", content="out", is_error=False)]
+    )
     msgs = build_anthropic_messages(conv.get_messages())
     assert msgs[0]["role"] == "user"
     assert msgs[0]["content"][0]["type"] == "tool_result"
@@ -63,7 +66,11 @@ def test_openai_input_tool_use_as_function_call():
     conv = ConversationManager()
     conv.add_assistant_message(
         "text",
-        tool_uses=[ToolUseBlock(tool_use_id="tu-1", tool_name="Bash", arguments={"command": "ls"})],
+        tool_uses=[
+            ToolUseBlock(
+                tool_use_id="tu-1", tool_name="Bash", arguments={"command": "ls"}
+            )
+        ],
     )
     msgs = build_openai_input(conv.get_messages())
     assert len(msgs) == 2  # 文本消息 + function_call
@@ -84,7 +91,11 @@ def test_chat_completion_uses_tool_calls_with_reasoning_content():
     conv = ConversationManager()
     conv.add_assistant_message(
         "text",
-        tool_uses=[ToolUseBlock(tool_use_id="tu-1", tool_name="Bash", arguments={"command": "ls"})],
+        tool_uses=[
+            ToolUseBlock(
+                tool_use_id="tu-1", tool_name="Bash", arguments={"command": "ls"}
+            )
+        ],
         thinking_blocks=[ThinkingBlock(thinking="let me think", signature="sig")],
     )
     msgs = build_chat_completion_messages(conv.get_messages())
@@ -98,7 +109,11 @@ def test_chat_completion_no_reasoning_when_no_thinking():
     conv = ConversationManager()
     conv.add_assistant_message(
         "text",
-        tool_uses=[ToolUseBlock(tool_use_id="tu-1", tool_name="Bash", arguments={"command": "ls"})],
+        tool_uses=[
+            ToolUseBlock(
+                tool_use_id="tu-1", tool_name="Bash", arguments={"command": "ls"}
+            )
+        ],
     )
     msgs = build_chat_completion_messages(conv.get_messages())
     assert "reasoning_content" not in msgs[0]
@@ -108,7 +123,11 @@ def test_openai_input_includes_reasoning_items():
     conv = ConversationManager()
     conv.add_assistant_message(
         "text",
-        tool_uses=[ToolUseBlock(tool_use_id="tu-1", tool_name="Bash", arguments={"command": "ls"})],
+        tool_uses=[
+            ToolUseBlock(
+                tool_use_id="tu-1", tool_name="Bash", arguments={"command": "ls"}
+            )
+        ],
         thinking_blocks=[ThinkingBlock(thinking="reasoning here", signature="rs-001")],
     )
     msgs = build_openai_input(conv.get_messages())

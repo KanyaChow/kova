@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 """
 SubAgent 系统端到端验证脚本。
 不依赖 LLM，直接调用核心组件验证所有 Agent 类型和关键流程。
@@ -29,7 +24,10 @@ from mewcode.agents.tool_filter import (
 from mewcode.agents.fork import FORK_BOILERPLATE_TAG, ForkError, build_forked_messages
 from mewcode.agents.trace import TraceManager
 from mewcode.agents.task_manager import TaskManager
-from mewcode.agents.notification import format_task_notification, inject_task_notifications
+from mewcode.agents.notification import (
+    format_task_notification,
+    inject_task_notifications,
+)
 from mewcode.conversation import ConversationManager, ToolUseBlock
 from mewcode.tools import ToolRegistry
 from mewcode.tools.base import Tool, ToolResult
@@ -39,6 +37,7 @@ PASS = "\033[32m✓\033[0m"
 FAIL = "\033[31m✗\033[0m"
 passed = 0
 failed = 0
+
 
 def check(name: str, condition: bool, detail: str = ""):
     global passed, failed
@@ -51,6 +50,7 @@ def check(name: str, condition: bool, detail: str = ""):
         if detail:
             msg += f"  — {detail}"
         print(msg)
+
 
 # ---------------------------------------------------------------------------
 # 用于测试的占位（dummy）工具
@@ -76,15 +76,18 @@ class DummyTool(Tool):
     async def execute(self, params):
         return ToolResult(output=f"{self.name} ok")
 
+
 def make_registry(*names: str) -> ToolRegistry:
     reg = ToolRegistry()
     for n in names:
         reg.register(DummyTool(n))
     return reg
 
+
 # ---------------------------------------------------------------------------
 # 1. Agent 定义加载
 # ---------------------------------------------------------------------------
+
 
 def verify_loader():
     print("\n== 1. Agent 定义加载 ==")
@@ -152,6 +155,7 @@ def verify_loader():
 
     return loader
 
+
 # ---------------------------------------------------------------------------
 # 2. 工具过滤
 # ---------------------------------------------------------------------------
@@ -159,9 +163,18 @@ def verify_tool_filter(loader: AgentLoader):
     print("\n== 2. 工具过滤（四层） ==")
 
     all_tools = [
-        "ReadFile", "EditFile", "WriteFile", "Bash", "Grep", "Glob",
-        "Agent", "AskUserQuestion", "TaskStop",
-        "EnterPlanMode", "ExitPlanMode", "LoadSkill",
+        "ReadFile",
+        "EditFile",
+        "WriteFile",
+        "Bash",
+        "Grep",
+        "Glob",
+        "Agent",
+        "AskUserQuestion",
+        "TaskStop",
+        "EnterPlanMode",
+        "ExitPlanMode",
+        "LoadSkill",
     ]
     reg = make_registry(*all_tools)
 
@@ -210,6 +223,7 @@ def verify_tool_filter(loader: AgentLoader):
 
     # 白名单+黑名单组合
     from mewcode.agents.parser import AgentDef
+
     combo = AgentDef(
         agent_type="combo",
         when_to_use="test",
@@ -221,9 +235,11 @@ def verify_tool_filter(loader: AgentLoader):
     names_combo = {t.name for t in filtered_combo.list_tools()}
     check("白名单+黑名单组合: 只剩 ReadFile+Grep", names_combo == {"ReadFile", "Grep"})
 
+
 # ---------------------------------------------------------------------------
 # 3. Fork 模式
 # ---------------------------------------------------------------------------
+
 
 def verify_fork():
     print("\n== 3. Fork 模式 ==")
@@ -235,7 +251,9 @@ def verify_fork():
     conv.add_assistant_message("好的，我来读取这个文件。")
 
     forked = build_forked_messages(conv, "顺便写个单元测试")
-    check("Fork 保留原始对话", len(forked.history) == 5)  # 4 条原始消息 + 1 条 fork 消息
+    check(
+        "Fork 保留原始对话", len(forked.history) == 5
+    )  # 4 条原始消息 + 1 条 fork 消息
     check(
         "Fork 末尾注入 boilerplate",
         FORK_BOILERPLATE_TAG in forked.history[-1].content,
@@ -266,6 +284,7 @@ def verify_fork():
         check("禁止再 Fork", False, "应该抛出 ForkError")
     except ForkError:
         check("禁止再 Fork", True)
+
 
 # ---------------------------------------------------------------------------
 # 4. Trace 链路追踪
@@ -298,6 +317,7 @@ def verify_trace():
     tm.complete(child1.agent_id, "completed")
     check("complete 设置状态", tm.get(child1.agent_id).status == "completed")
     check("complete 设置 end_time", tm.get(child1.agent_id).end_time is not None)
+
 
 # ---------------------------------------------------------------------------
 # 5. TaskManager 后台任务
@@ -360,6 +380,7 @@ async def verify_task_manager():
     check("异常任务状态 failed", tm.get(bad_id).status == "failed")
     check("异常任务包含错误信息", "boom" in tm.get(bad_id).result)
 
+
 # ---------------------------------------------------------------------------
 # 6. Notification 通知
 # ---------------------------------------------------------------------------
@@ -391,9 +412,11 @@ def verify_notification():
     check("注入后消息角色为 user", conv.history[0].role == "user")
     check("注入后内容包含通知", "<task-notification>" in conv.history[0].content)
 
+
 # ---------------------------------------------------------------------------
 # 7. Config 配置
 # ---------------------------------------------------------------------------
+
 
 def verify_config():
     print("\n== 7. 配置扩展 ==")
@@ -404,9 +427,13 @@ def verify_config():
 
     config = load_config(config_path)
     check("enable_fork 读取成功", isinstance(config.enable_fork, bool))
-    check("enable_verification_agent 读取成功", isinstance(config.enable_verification_agent, bool))
+    check(
+        "enable_verification_agent 读取成功",
+        isinstance(config.enable_verification_agent, bool),
+    )
     check("enable_fork=True", config.enable_fork is True)
     check("enable_verification_agent=True", config.enable_verification_agent is True)
+
 
 # ---------------------------------------------------------------------------
 # 8. 权限模式
@@ -418,7 +445,10 @@ def verify_permission():
     check("BYPASS 枚举值", PermissionMode.BYPASS.value == "bypassPermissions")
     check("BYPASS read=allow", mode_decide(PermissionMode.BYPASS, "read") == "allow")
     check("BYPASS write=allow", mode_decide(PermissionMode.BYPASS, "write") == "allow")
-    check("BYPASS command=allow", mode_decide(PermissionMode.BYPASS, "command") == "allow")
+    check(
+        "BYPASS command=allow", mode_decide(PermissionMode.BYPASS, "command") == "allow"
+    )
+
 
 # ---------------------------------------------------------------------------
 # 9. Agent 扩展字段
@@ -439,6 +469,7 @@ def verify_agent_fields():
 
     agent.set_agent_catalog("## Agents\n- Explore: 搜索")
     check("set_agent_catalog 生效", "Explore" in agent._agent_catalog)
+
 
 # ---------------------------------------------------------------------------
 # 10. AgentTool 参数模型
@@ -470,10 +501,9 @@ def verify_agent_tool():
     check("subagent_type 不是 required", "subagent_type" not in required)
 
     # worktree 未实现
-    params_wt = AgentToolParams(
-        prompt="test", description="test", isolation="worktree"
-    )
+    params_wt = AgentToolParams(prompt="test", description="test", isolation="worktree")
     check("isolation 参数可设置", params_wt.isolation == "worktree")
+
 
 # ===========================================================================
 # 主流程
@@ -505,6 +535,7 @@ async def main():
     print("=" * 60)
 
     return failed == 0
+
 
 if __name__ == "__main__":
     success = asyncio.run(main())

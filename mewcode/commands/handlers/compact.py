@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from mewcode.commands.registry import Command, CommandContext, CommandType
@@ -13,14 +8,12 @@ async def handle_compact(ctx: CommandContext) -> None:
         ctx.ui.add_system_message("Agent 未初始化")
         return
 
-
     input_tokens, _ = ctx.ui.get_token_count()
     if input_tokens < 5000:
         ctx.ui.add_system_message(f"当前 token 数 {input_tokens:,}，无需压缩")
         return
 
     from mewcode.agent import CompactNotification, ErrorEvent
-
 
     result = await ctx.agent.manual_compact(ctx.conversation)
     if isinstance(result, CompactNotification):
@@ -46,4 +39,3 @@ COMPACT_COMMAND = Command(
     type=CommandType.LOCAL,
     handler=handle_compact,
 )
-

@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -21,23 +16,26 @@ class TaskGetParams(BaseModel):
 
 class TaskGetTool(Tool):
     name = "TaskGet"
-    description = "Get details of a shared task by ID, including dependency information."
+    description = (
+        "Get details of a shared task by ID, including dependency information."
+    )
     params_model = TaskGetParams
     category = "read"
     is_concurrency_safe = True
 
-
     def __init__(self, team_manager: TeamManager, team_name: str) -> None:
         self._team_manager = team_manager
         self._team_name = team_name
-
 
     async def execute(self, params: BaseModel) -> ToolResult:
         p: TaskGetParams = params  # type: ignore[assignment]
 
         store = self._team_manager.get_task_store(self._team_name)
         if store is None:
-            return ToolResult(output=f"Task store not found for team '{self._team_name}'", is_error=True)
+            return ToolResult(
+                output=f"Task store not found for team '{self._team_name}'",
+                is_error=True,
+            )
 
         task = store.get(p.task_id)
         if task is None:

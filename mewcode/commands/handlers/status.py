@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 import os
@@ -31,10 +26,12 @@ async def handle_status(ctx: CommandContext) -> None:
     lines.append(f"Token: {input_tokens:,} / {context_window:,}（{pct}%）")
 
     if ctx.agent:
-        enabled = [t for t in ctx.agent.registry.list_tools()
-                   if ctx.agent.registry.is_enabled(t.name)]
+        enabled = [
+            t
+            for t in ctx.agent.registry.list_tools()
+            if ctx.agent.registry.is_enabled(t.name)
+        ]
         lines.append(f"工具: {len(enabled)} 个已启用")
-
 
     if ctx.memory_manager:
         mem_entries = ctx.memory_manager.get_memories()
@@ -55,4 +52,3 @@ STATUS_COMMAND = Command(
     type=CommandType.LOCAL,
     handler=handle_status,
 )
-

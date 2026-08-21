@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import json
@@ -82,6 +78,7 @@ class CompactEvent:
 # 内容替换状态 — Design B（决策冻结，不做原地修改）
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class ContentReplacementState:
     seen_ids: set[str] = field(default_factory=set)
@@ -117,11 +114,17 @@ def append_replacement_records(
     path = session_dir / REPLACEMENT_RECORDS_FILENAME
     with path.open("a", encoding="utf-8") as f:
         for r in records:
-            f.write(json.dumps({
-                "kind": r.kind,
-                "tool_use_id": r.tool_use_id,
-                "replacement": r.replacement,
-            }, ensure_ascii=False) + "\n")
+            f.write(
+                json.dumps(
+                    {
+                        "kind": r.kind,
+                        "tool_use_id": r.tool_use_id,
+                        "replacement": r.replacement,
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n"
+            )
 
 
 def load_replacement_records(session_dir: Path) -> list[ContentReplacementRecord]:
@@ -135,11 +138,13 @@ def load_replacement_records(session_dir: Path) -> list[ContentReplacementRecord
             if not line:
                 continue
             obj = json.loads(line)
-            out.append(ContentReplacementRecord(
-                kind=obj.get("kind", "tool-result"),
-                tool_use_id=obj["tool_use_id"],
-                replacement=obj["replacement"],
-            ))
+            out.append(
+                ContentReplacementRecord(
+                    kind=obj.get("kind", "tool-result"),
+                    tool_use_id=obj["tool_use_id"],
+                    replacement=obj["replacement"],
+                )
+            )
     return out
 
 
@@ -168,6 +173,7 @@ def reconstruct_replacement_state(
 # Session 目录管理
 # ---------------------------------------------------------------------------
 
+
 def ensure_session_dir(work_dir: str) -> Path:
     session_dir = Path(work_dir) / SESSION_SUBDIR
     session_dir.mkdir(parents=True, exist_ok=True)
@@ -183,6 +189,7 @@ def cleanup_tool_results(session_dir: Path) -> None:
 # ---------------------------------------------------------------------------
 # Layer 1：大型工具结果落盘
 # ---------------------------------------------------------------------------
+
 
 def persist_tool_result(tool_use_id: str, content: str, session_dir: Path) -> Path:
     file_path = session_dir / f"{tool_use_id}.txt"
@@ -209,9 +216,9 @@ def make_persisted_preview(content: str, file_path: Path) -> str:
     )
 
 
-
-
-def _is_spill_readback(tool_use_id: str, tool_use_index: dict, abs_spill_dir: str) -> bool:
+def _is_spill_readback(
+    tool_use_id: str, tool_use_index: dict, abs_spill_dir: str
+) -> bool:
     tu = tool_use_index.get(tool_use_id)
     if tu is None or tu.tool_name != "ReadFile":
         return False
@@ -262,9 +269,12 @@ def apply_tool_result_budget(
                 # 已被外部（如某些工具本身）打上 persisted-output 标签 —— 视为已知决策
                 state.seen_ids.add(tr.tool_use_id)
                 state.replacements[tr.tool_use_id] = tr.content
-                new_records.append(ContentReplacementRecord(
-                    tool_use_id=tr.tool_use_id, replacement=tr.content,
-                ))
+                new_records.append(
+                    ContentReplacementRecord(
+                        tool_use_id=tr.tool_use_id,
+                        replacement=tr.content,
+                    )
+                )
             else:
                 fresh.append(tr)
 
@@ -279,9 +289,12 @@ def apply_tool_result_budget(
                 preview = make_persisted_preview(tr.content, fp)
                 state.replacements[tr.tool_use_id] = preview
                 state.seen_ids.add(tr.tool_use_id)
-                new_records.append(ContentReplacementRecord(
-                    tool_use_id=tr.tool_use_id, replacement=preview,
-                ))
+                new_records.append(
+                    ContentReplacementRecord(
+                        tool_use_id=tr.tool_use_id,
+                        replacement=preview,
+                    )
+                )
                 # 就地替换消息内容
                 tr.content = preview
                 persisted_p1.add(tr.tool_use_id)
@@ -289,19 +302,27 @@ def apply_tool_result_budget(
         # Pass 2：聚合超限
         remaining = [tr for tr in fresh if tr.tool_use_id not in persisted_p1]
         total = sum(
-            len(state.replacements[tr.tool_use_id]) if tr.tool_use_id in state.replacements
+            len(state.replacements[tr.tool_use_id])
+            if tr.tool_use_id in state.replacements
             else len(tr.content)
             for tr in msg.tool_results
-            if tr.tool_use_id not in [r.tool_use_id for r in fresh
-                                       if r.tool_use_id not in persisted_p1
-                                       and r.tool_use_id not in state.replacements]
+            if tr.tool_use_id
+            not in [
+                r.tool_use_id
+                for r in fresh
+                if r.tool_use_id not in persisted_p1
+                and r.tool_use_id not in state.replacements
+            ]
         ) + sum(len(tr.content) for tr in remaining)
         # 重新简单计算：所有 tool_results 的当前内容长度之和
         total = sum(len(tr.content) for tr in msg.tool_results)
         if total > AGGREGATE_CHAR_LIMIT:
             ranked = sorted(remaining, key=lambda tr: len(tr.content), reverse=True)
             for tr in ranked:
-                if sum(len(t.content) for t in msg.tool_results) <= AGGREGATE_CHAR_LIMIT:
+                if (
+                    sum(len(t.content) for t in msg.tool_results)
+                    <= AGGREGATE_CHAR_LIMIT
+                ):
                     break
                 if _is_spill_readback(tr.tool_use_id, tool_use_index, abs_spill_dir):
                     continue
@@ -309,9 +330,12 @@ def apply_tool_result_budget(
                 preview = make_persisted_preview(tr.content, fp)
                 state.replacements[tr.tool_use_id] = preview
                 state.seen_ids.add(tr.tool_use_id)
-                new_records.append(ContentReplacementRecord(
-                    tool_use_id=tr.tool_use_id, replacement=preview,
-                ))
+                new_records.append(
+                    ContentReplacementRecord(
+                        tool_use_id=tr.tool_use_id,
+                        replacement=preview,
+                    )
+                )
                 # 就地替换消息内容
                 tr.content = preview
 
@@ -326,6 +350,7 @@ def apply_tool_result_budget(
 # ---------------------------------------------------------------------------
 # Layer 2：全对话摘要（Auto-Compact）
 # ---------------------------------------------------------------------------
+
 
 def compute_compact_threshold(context_window: int, manual: bool = False) -> int:
     effective = context_window - SUMMARY_OUTPUT_RESERVE
@@ -436,7 +461,7 @@ def extract_summary(llm_output: str) -> str:
     end = llm_output.find("</summary>")
     if start == -1 or end == -1:
         return llm_output
-    return llm_output[start + len("<summary>"):end].strip()
+    return llm_output[start + len("<summary>") : end].strip()
 
 
 def build_compact_messages(
@@ -445,7 +470,10 @@ def build_compact_messages(
     has_keep_tail: bool = False,
     transcript_path: str = "",
 ) -> list[Message]:
-    content = "本次会话延续自之前的对话，因上下文空间不足进行了压缩。以下是早期对话的摘要：\n\n" + summary
+    content = (
+        "本次会话延续自之前的对话，因上下文空间不足进行了压缩。以下是早期对话的摘要：\n\n"
+        + summary
+    )
     if has_keep_tail:
         content += "\n\n近期消息已原样保留。"
     if transcript_path:
@@ -568,13 +596,13 @@ def build_recovery_attachment(
     if state is not None:
         files = state.snapshot_files(RECOVERY_FILE_LIMIT)
         if files:
-            buf = ["## 最近读过的文件\n",
-                   "以下快照是文件读取工具上次返回的内容。如需当前字节请重新读取。\n"]
+            buf = [
+                "## 最近读过的文件\n",
+                "以下快照是文件读取工具上次返回的内容。如需当前字节请重新读取。\n",
+            ]
             for rec in files:
                 content = _truncate_by_tokens(rec.content, RECOVERY_TOKENS_PER_FILE)
-                ts = time.strftime(
-                    "%Y-%m-%dT%H:%M:%SZ", time.gmtime(rec.timestamp)
-                )
+                ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(rec.timestamp))
                 buf.append(f"### {rec.path}  (read {ts})\n")
                 buf.append("```\n")
                 buf.append(content)
@@ -585,8 +613,10 @@ def build_recovery_attachment(
 
         skills = state.snapshot_skills()
         if skills:
-            buf = ["## 已激活的技能\n",
-                   "下列技能在本会话中被调用过，其触发条件仍然适用。\n"]
+            buf = [
+                "## 已激活的技能\n",
+                "下列技能在本会话中被调用过，其触发条件仍然适用。\n",
+            ]
             used = 0
             emitted = False
             for sk in skills:
@@ -601,8 +631,7 @@ def build_recovery_attachment(
                 sections.append("".join(buf))
 
     if tool_schemas:
-        buf = ["## 可用工具\n",
-               "你仍然可以调用以下工具，需要时直接发起调用即可：\n"]
+        buf = ["## 可用工具\n", "你仍然可以调用以下工具，需要时直接发起调用即可：\n"]
         for t in tool_schemas:
             name = t.get("name") if isinstance(t, Mapping) else None
             if not name:
@@ -726,7 +755,6 @@ class CompactCircuitBreaker:
     def record_success(self) -> None:
         self.consecutive_failures = 0
 
-
     def is_open(self) -> bool:
         return self.consecutive_failures >= self.max_failures
 
@@ -769,6 +797,7 @@ class UsageAnchor:
 # ---------------------------------------------------------------------------
 # Auto-compact 编排器
 # ---------------------------------------------------------------------------
+
 
 async def auto_compact(
     conversation: ConversationManager,
@@ -835,7 +864,10 @@ async def auto_compact(
     ]
     summary_messages.extend(messages_for_summary)
     summary_messages.append(
-        {"role": "user", "content": "Please provide your summary of the conversation above now. REMINDER: Do NOT call any tools — respond with plain text only."}
+        {
+            "role": "user",
+            "content": "Please provide your summary of the conversation above now. REMINDER: Do NOT call any tools — respond with plain text only.",
+        }
     )
 
     summary_conv = ConversationManager()
@@ -846,7 +878,10 @@ async def auto_compact(
     for msg in to_summarize:
         summary_conv.history.append(msg)
     summary_conv.history.append(
-        Message(role="user", content="Please provide your summary of the conversation above now. REMINDER: Do NOT call any tools — respond with plain text only.")
+        Message(
+            role="user",
+            content="Please provide your summary of the conversation above now. REMINDER: Do NOT call any tools — respond with plain text only.",
+        )
     )
 
     max_retries = 3
@@ -857,7 +892,9 @@ async def auto_compact(
             from mewcode.tools.base import StreamEnd, StreamEvent, TextDelta
 
             collected_text = ""
-            async for event in client.stream(summary_conv, system=SUMMARY_PROMPT, tools=tool_schemas):
+            async for event in client.stream(
+                summary_conv, system=SUMMARY_PROMPT, tools=tool_schemas
+            ):
                 if isinstance(event, TextDelta):
                     collected_text += event.text
                 elif isinstance(event, StreamEnd):

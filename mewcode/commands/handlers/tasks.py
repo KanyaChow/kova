@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import time
@@ -26,7 +22,6 @@ def _format_status(status: str) -> str:
 
 
 def create_tasks_handler(task_manager: TaskManager):
-
 
     async def handler(ctx: CommandContext) -> None:
         args = ctx.args.strip()

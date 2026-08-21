@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import json
@@ -25,7 +21,6 @@ class MailboxMessage:
     timestamp: float = 0.0
     read: bool = False
     metadata: dict[str, Any] = field(default_factory=dict)
-
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -70,7 +65,9 @@ class Mailbox:
         last_err: Exception | None = None
         for _ in range(10):
             try:
-                fd = os.open(str(lock_file), os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+                fd = os.open(
+                    str(lock_file), os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644
+                )
                 lock_fd = fd
                 os.close(fd)
                 break
@@ -123,12 +120,14 @@ class Mailbox:
 
     def write(self, agent_id: str, message: MailboxMessage) -> None:
         """Append a message to *agent_id*'s inbox (thread-safe)."""
+
         def _append(msgs: list[MailboxMessage]) -> list[MailboxMessage]:
             message.read = False
             if message.timestamp == 0.0:
                 message.timestamp = time.time()
             msgs.append(message)
             return msgs
+
         self._with_lock(agent_id, _append)
 
     def read(self, agent_id: str) -> list[MailboxMessage]:
@@ -146,6 +145,7 @@ class Mailbox:
                     result.append(m)
                     m.read = True
             return msgs
+
         self._with_lock(agent_id, _mark_read)
         return result
 

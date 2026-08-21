@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 import os
@@ -32,7 +27,12 @@ def _parse_include(trimmed: str) -> str:
         return ""
     if " " in rest or "\t" in rest:
         return ""
-    if rest.startswith("./") or rest.startswith("../") or rest.startswith("~/") or rest.startswith("/"):
+    if (
+        rest.startswith("./")
+        or rest.startswith("../")
+        or rest.startswith("~/")
+        or rest.startswith("/")
+    ):
         return rest
     return ""
 
@@ -217,4 +217,3 @@ def load_instructions(project_root: str) -> str:
 
     parts = [f"Contents of {label}:\n\n{content}" for label, content in sources]
     return "\n\n---\n\n".join(parts)
-

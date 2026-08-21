@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from mewcode.commands.registry import Command, CommandContext, CommandType
@@ -52,11 +47,15 @@ async def handle_session(ctx: CommandContext) -> None:
             if not metas:
                 ctx.ui.add_system_message("没有已保存的会话。")
                 return
-            lines: list[str] = ["可恢复的会话（使用 /session resume <id> 或 /session resume <序号>）："]
+            lines: list[str] = [
+                "可恢复的会话（使用 /session resume <id> 或 /session resume <序号>）："
+            ]
             for i, m in enumerate(metas[:15], 1):
                 ts = m.last_active.strftime("%Y-%m-%d %H:%M")
                 title = m.title or "(未命名)"
-                lines.append(f"  {i}. [{m.id[:8]}]  {title}  ({m.message_count} msgs, {ts})")
+                lines.append(
+                    f"  {i}. [{m.id[:8]}]  {title}  ({m.message_count} msgs, {ts})"
+                )
             ctx.ui.add_system_message("\n".join(lines))
             ctx.config["_resume_candidates"] = [m.id for m in metas[:15]]
             return
@@ -83,7 +82,6 @@ async def handle_session(ctx: CommandContext) -> None:
             f"会话已恢复: {session_id} ({result.session.meta.message_count} msgs)"
         )
 
-
     elif sub == "new":
         if ctx.session:
             ctx.session.close()
@@ -108,7 +106,6 @@ async def handle_session(ctx: CommandContext) -> None:
         else:
             ctx.ui.add_system_message(f"会话未找到: {session_id}")
 
-
     else:
         ctx.ui.add_system_message(
             "用法: /session [list | resume <id> | new | delete <id>]"
@@ -122,4 +119,3 @@ SESSION_COMMAND = Command(
     type=CommandType.LOCAL,
     handler=handle_session,
 )
-

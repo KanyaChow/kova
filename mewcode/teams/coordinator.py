@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from typing import Any
@@ -32,7 +27,9 @@ def match_session_mode(
     )
 
 
-def get_coordinator_system_prompt(agent_catalog: list[tuple[str, str]] | None = None) -> str:
+def get_coordinator_system_prompt(
+    agent_catalog: list[tuple[str, str]] | None = None,
+) -> str:
     if agent_catalog:
         agent_lines = "\n".join(f"- **{name}**: {desc}" for name, desc in agent_catalog)
     else:
@@ -230,6 +227,7 @@ def get_coordinator_user_context(
 ) -> dict[str, str]:
     if worker_tools is None:
         from mewcode.agents.tool_filter import IN_PROCESS_TEAMMATE_ALLOWED_TOOLS
+
         tools_str = ", ".join(sorted(IN_PROCESS_TEAMMATE_ALLOWED_TOOLS))
     else:
         tools_str = ", ".join(sorted(worker_tools))

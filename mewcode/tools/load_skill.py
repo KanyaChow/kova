@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -30,18 +26,15 @@ class LoadSkill(Tool):
     is_concurrency_safe = False
     is_system_tool = True
 
-
     def __init__(self) -> None:
         self._loader: SkillLoader | None = None
         self._agent: Agent | None = None
-
 
     def set_loader(self, loader: SkillLoader) -> None:
         self._loader = loader
 
     def set_agent(self, agent: Agent) -> None:
         self._agent = agent
-
 
     async def execute(self, params: BaseModel) -> ToolResult:
         assert isinstance(params, LoadSkillParams)

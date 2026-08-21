@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import time
@@ -24,8 +20,9 @@ def _status_icon(status: str) -> str:
     return {"running": "⏳", "completed": "✓", "failed": "✗"}.get(status, "?")
 
 
-def create_trace_command(trace_manager: TraceManager, lead_agent_id: str = "") -> Command:
-
+def create_trace_command(
+    trace_manager: TraceManager, lead_agent_id: str = ""
+) -> Command:
 
     async def handler(ctx: CommandContext) -> None:
         nodes = list(trace_manager._nodes.values())
@@ -39,20 +36,27 @@ def create_trace_command(trace_manager: TraceManager, lead_agent_id: str = "") -
 
         lines = ["Agent 追踪树:"]
 
-
         def _render(parent_id: str | None, indent: int) -> None:
             children = parent_map.get(parent_id, [])
             for n in children:
                 icon = _status_icon(n.status)
                 elapsed = _format_elapsed(n.start_time, n.end_time)
-                tokens = f"↑{n.input_tokens} ↓{n.output_tokens}" if n.input_tokens or n.output_tokens else ""
+                tokens = (
+                    f"↑{n.input_tokens} ↓{n.output_tokens}"
+                    if n.input_tokens or n.output_tokens
+                    else ""
+                )
                 prefix = "  " * indent
                 lines.append(
                     f"{prefix}{icon} [{n.agent_id[:8]}] {n.agent_type} — {n.status} ({elapsed}) {tokens}"
                 )
                 _render(n.agent_id, indent + 1)
 
-        roots = [n for n in nodes if n.parent_id is None or n.parent_id not in trace_manager._nodes]
+        roots = [
+            n
+            for n in nodes
+            if n.parent_id is None or n.parent_id not in trace_manager._nodes
+        ]
         if not roots:
             roots = nodes[:1]
 
@@ -62,8 +66,14 @@ def create_trace_command(trace_manager: TraceManager, lead_agent_id: str = "") -
         for root in roots:
             icon = _status_icon(root.status)
             elapsed = _format_elapsed(root.start_time, root.end_time)
-            tokens = f"↑{root.input_tokens} ↓{root.output_tokens}" if root.input_tokens or root.output_tokens else ""
-            lines.append(f"  {icon} [{root.agent_id[:8]}] {root.agent_type} — {root.status} ({elapsed}) {tokens}")
+            tokens = (
+                f"↑{root.input_tokens} ↓{root.output_tokens}"
+                if root.input_tokens or root.output_tokens
+                else ""
+            )
+            lines.append(
+                f"  {icon} [{root.agent_id[:8]}] {root.agent_type} — {root.status} ({elapsed}) {tokens}"
+            )
             _render(root.agent_id, 2)
 
         total_in = sum(n.input_tokens for n in nodes)

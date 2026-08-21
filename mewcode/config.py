@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import os
@@ -66,12 +62,12 @@ class ProviderConfig:
     def get_context_window(self) -> int:
         """通过四层 fallback 解析模型的 context window，按优先级从高到低：
 
-          1. 配置文件提供的 context_window（> 0）——显式覆盖，永远优先。
-          2. 从 provider 的 /v1/models 端点自动拉取并通过 set_fetched_context_window
-             缓存的值（只有 anthropic 协议的 provider 才会设置它；拉取失败或缺失时
-             保持为 0 并跳过）。
-          3. 内置的「模型名 -> window」映射表（按子串匹配）。
-          4. 保守的默认值（claude -> 200000，其他 -> 128000）。
+        1. 配置文件提供的 context_window（> 0）——显式覆盖，永远优先。
+        2. 从 provider 的 /v1/models 端点自动拉取并通过 set_fetched_context_window
+           缓存的值（只有 anthropic 协议的 provider 才会设置它；拉取失败或缺失时
+           保持为 0 并跳过）。
+        3. 内置的「模型名 -> window」映射表（按子串匹配）。
+        4. 保守的默认值（claude -> 200000，其他 -> 128000）。
         """
         if self.context_window > 0:
             return self.context_window
@@ -115,7 +111,6 @@ class MCPServerConfig:
     headers: dict[str, str] = field(default_factory=dict)
     env: dict[str, str] = field(default_factory=dict)
 
-
     @property
     def is_stdio(self) -> bool:
         return self.command is not None
@@ -123,7 +118,9 @@ class MCPServerConfig:
 
 @dataclass
 class WorktreeConfig:
-    symlink_directories: list[str] = field(default_factory=lambda: ["node_modules", ".venv", "vendor"])
+    symlink_directories: list[str] = field(
+        default_factory=lambda: ["node_modules", ".venv", "vendor"]
+    )
     stale_cleanup_interval: int = 3600
     stale_cutoff_hours: int = 24
 
@@ -131,8 +128,9 @@ class WorktreeConfig:
 @dataclass
 class SandboxAppConfig:
     """沙箱相关的配置项。"""
-    enabled: bool = False         # 是否启用 OS 级沙箱
-    auto_allow: bool = False      # 是否自动放行命令（沙箱兜底）
+
+    enabled: bool = False  # 是否启用 OS 级沙箱
+    auto_allow: bool = False  # 是否自动放行命令（沙箱兜底）
     network_enabled: bool = False  # 沙箱内是否允许网络访问
 
 

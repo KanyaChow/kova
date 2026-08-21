@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import asyncio
@@ -40,13 +36,10 @@ class BackgroundTask:
 
 
 class TaskManager:
-
-
     def __init__(self) -> None:
         self._tasks: dict[str, BackgroundTask] = {}
         self._notify_queue: asyncio.Queue[str] = asyncio.Queue()
         self._async_tasks: dict[str, asyncio.Task[None]] = {}
-
 
     def launch(
         self,
@@ -72,7 +65,6 @@ class TaskManager:
         bg.cancel = async_task.cancel
         return task_id
 
-
     async def _run_background(
         self, task_id: str, fork_conversation: Any = None
     ) -> None:
@@ -92,6 +84,7 @@ class TaskManager:
                 mailbox = bg.agent._team_manager.get_mailbox(bg.agent.team_name)
                 if mailbox:
                     from mewcode.teams.mailbox import create_message
+
                     msg = create_message(
                         from_agent=bg.name,
                         to_agent="lead",
@@ -132,7 +125,6 @@ class TaskManager:
             self._async_tasks.pop(task_id, None)
             await self._notify_queue.put(task_id)
 
-
     def adopt_running(
         self,
         agent: Agent,
@@ -154,7 +146,6 @@ class TaskManager:
         self._async_tasks[task_id] = async_task
         bg.cancel = async_task.cancel
         return task_id
-
 
     async def _continue_background(self, task_id: str) -> None:
         bg = self._tasks.get(task_id)

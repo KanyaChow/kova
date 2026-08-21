@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 import tempfile
@@ -10,7 +5,6 @@ from pathlib import Path
 
 
 class PathSandbox:
-
     # 默认禁写路径：这些文件包含敏感配置，不允许 Agent 直接修改
     _DEFAULT_DENY_WRITE: list[str] = [
         ".mewcode/config.yaml",
@@ -32,17 +26,15 @@ class PathSandbox:
 
         # 禁写路径列表：相对路径基于 project_root 解析
         self._deny_write: list[Path] = []
-        for dp in (deny_write or self._DEFAULT_DENY_WRITE):
+        for dp in deny_write or self._DEFAULT_DENY_WRITE:
             dp_path = Path(dp)
             if not dp_path.is_absolute():
                 dp_path = root / dp_path
             self._deny_write.append(dp_path.resolve())
 
-
     @property
     def project_root(self) -> Path:
         return self._allowed_roots[0]
-
 
     def _is_deny_write(self, real_path: Path) -> bool:
         """检查路径是否命中禁写列表。
@@ -61,7 +53,6 @@ class PathSandbox:
             except ValueError:
                 continue
         return False
-
 
     def check(self, path: str) -> tuple[bool, str]:
         p = Path(path).expanduser()

@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 import re
@@ -17,7 +12,6 @@ def validate_slug(name: str) -> str | None:
     if len(name) > MAX_SLUG_LENGTH:
         return f"name too long (max {MAX_SLUG_LENGTH} characters)"
 
-
     segments = name.split("/")
     for seg in segments:
         if not seg:
@@ -26,7 +20,6 @@ def validate_slug(name: str) -> str | None:
             return "name must not contain '.' or '..' as a segment"
         if not _SEGMENT_RE.match(seg):
             return f"invalid segment: {seg!r} (allowed: letters, digits, '.', '-', '_')"
-
 
     return None
 

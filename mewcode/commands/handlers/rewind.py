@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 import time
@@ -21,13 +16,17 @@ async def _handle_rewind(ctx) -> None:
     lines = ["⟲ Rewind — select a checkpoint:\n"]
     for i, snap in enumerate(snapshots):
         ago = int(time.time() - snap.timestamp)
-        label = snap.user_text[:50] + "…" if len(snap.user_text) > 50 else snap.user_text
+        label = (
+            snap.user_text[:50] + "…" if len(snap.user_text) > 50 else snap.user_text
+        )
         lines.append(f"  [{i + 1}] {label} ({ago}s ago, {len(snap.backups)} file(s))")
     lines.append("\nOptions after selecting:")
     lines.append("  1) Restore code and conversation")
     lines.append("  2) Restore conversation only")
     lines.append("  3) Restore code only")
-    lines.append(f"\nUsage: /rewind <checkpoint> [option]  (e.g. /rewind {len(snapshots)} 1)")
+    lines.append(
+        f"\nUsage: /rewind <checkpoint> [option]  (e.g. /rewind {len(snapshots)} 1)"
+    )
     ctx.ui.add_system_message("\n".join(lines))
 
     args = ctx.args.strip()
@@ -42,7 +41,9 @@ async def _handle_rewind(ctx) -> None:
         return
 
     if idx < 0 or idx >= len(snapshots):
-        ctx.ui.add_system_message(f"Checkpoint {idx + 1} not found. Valid: 1-{len(snapshots)}")
+        ctx.ui.add_system_message(
+            f"Checkpoint {idx + 1} not found. Valid: 1-{len(snapshots)}"
+        )
         return
 
     option = 1
@@ -71,7 +72,9 @@ async def _handle_rewind(ctx) -> None:
             f"⟲ Restored {len(changed)} file(s) to checkpoint {idx + 1}. Conversation unchanged."
         )
     else:
-        ctx.ui.add_system_message("Invalid option. Use 1 (both), 2 (conversation), or 3 (code).")
+        ctx.ui.add_system_message(
+            "Invalid option. Use 1 (both), 2 (conversation), or 3 (code)."
+        )
 
 
 REWIND_COMMAND = Command(

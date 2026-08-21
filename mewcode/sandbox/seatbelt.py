@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 """macOS Seatbelt 沙箱实现。
 
 通过 sandbox-exec -p <profile> 执行命令，利用 macOS 内核的 Seatbelt
@@ -74,7 +69,9 @@ class SeatbeltSandbox(Sandbox):
         """将命令包装为 sandbox-exec 调用。"""
         profile = _build_profile(config)
         # 用 -p 参数传递内联 profile
-        return f"{_SANDBOX_EXEC} -p {shlex.quote(profile)} bash -c {shlex.quote(command)}"
+        return (
+            f"{_SANDBOX_EXEC} -p {shlex.quote(profile)} bash -c {shlex.quote(command)}"
+        )
 
     def available(self) -> bool:
         """检查 sandbox-exec 是否存在。"""

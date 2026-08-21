@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import logging
@@ -20,8 +16,6 @@ FORK_RECENT_COUNT = 5
 
 
 class SkillExecutor:
-
-
     def __init__(
         self,
         agent: Agent,
@@ -32,17 +26,13 @@ class SkillExecutor:
         self.client = client
         self.protocol = protocol
 
-
     def execute_inline(self, skill: SkillDef, args: str) -> None:
         prompt = substitute_arguments(skill.prompt_body, args)
         self.agent.activate_skill(skill.name, prompt)
         if getattr(self.agent, "recovery_state", None) is not None:
             self.agent.recovery_state.record_skill_invocation(skill.name, prompt)
 
-
-    async def execute_fork(
-        self, skill: SkillDef, args: str
-    ) -> str:
+    async def execute_fork(self, skill: SkillDef, args: str) -> str:
         prompt = substitute_arguments(skill.prompt_body, args)
         if getattr(self.agent, "recovery_state", None) is not None:
             self.agent.recovery_state.record_skill_invocation(
@@ -60,7 +50,12 @@ class SkillExecutor:
 
         fork_conv.add_user_message(prompt)
 
-        from mewcode.agent import Agent as AgentClass, StreamText, LoopComplete, ErrorEvent
+        from mewcode.agent import (
+            Agent as AgentClass,
+            StreamText,
+            LoopComplete,
+            ErrorEvent,
+        )
 
         fork_agent = AgentClass(
             client=self.client,
@@ -83,12 +78,15 @@ class SkillExecutor:
 
         return "".join(result_parts)
 
-
     def _build_fork_context(self, mode: str) -> list[Message]:
         if mode == "none":
             return []
 
-        history = self.agent._conversation.history if hasattr(self.agent, '_conversation') else []
+        history = (
+            self.agent._conversation.history
+            if hasattr(self.agent, "_conversation")
+            else []
+        )
         if not history:
             main_history = []
         else:
@@ -96,15 +94,13 @@ class SkillExecutor:
 
         if mode == "recent":
             content_messages = [
-                m for m in main_history
-                if m.content and not m.tool_results
+                m for m in main_history if m.content and not m.tool_results
             ]
             return content_messages[-FORK_RECENT_COUNT:]
 
         if mode == "full":
             content_messages = [
-                m for m in main_history
-                if m.content and not m.tool_results
+                m for m in main_history if m.content and not m.tool_results
             ]
             if not content_messages:
                 return []
@@ -115,7 +111,9 @@ class SkillExecutor:
                 if len(m.content) > 200:
                     text += "..."
                 summary_parts.append(f"{prefix}: {text}")
-            summary = "## Previous conversation summary\n\n" + "\n\n".join(summary_parts)
+            summary = "## Previous conversation summary\n\n" + "\n\n".join(
+                summary_parts
+            )
             return [Message(role="user", content=summary)]
 
         return []

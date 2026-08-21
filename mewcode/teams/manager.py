@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import json
@@ -54,7 +50,6 @@ class TeamManager:
             self._detected_backend = detect_backend(teammate_mode, is_interactive)
         return self._detected_backend
 
-
     def create_team(
         self,
         name: str,
@@ -90,7 +85,6 @@ class TeamManager:
 
         log.info("Created team '%s' at %s (backend=%s)", slug, team_dir, backend.value)
         return team
-
 
     def get_team(self, name: str) -> AgentTeam | None:
         if name in self._teams:
@@ -138,7 +132,12 @@ class TeamManager:
 
         AgentNameRegistry.instance().register(member.name, member.agent_id)
         self._teammate_team_map[member.agent_id] = team_name
-        log.info("Registered member '%s' (agent=%s) in team '%s'", member.name, member.agent_id, team_name)
+        log.info(
+            "Registered member '%s' (agent=%s) in team '%s'",
+            member.name,
+            member.agent_id,
+            team_name,
+        )
 
     def set_member_idle(self, team_name: str, member_name: str) -> None:
         team = self.get_team(team_name)
@@ -158,12 +157,13 @@ class TeamManager:
             )
             mailbox.write(team.lead_agent_id, msg)
 
-    def register_inprocess_handle(self, agent_id: str, handle: InProcessTeammateHandle) -> None:
+    def register_inprocess_handle(
+        self, agent_id: str, handle: InProcessTeammateHandle
+    ) -> None:
         self._inprocess_handles[agent_id] = handle
 
     def register_pane_id(self, agent_id: str, pane_id: str) -> None:
         self._pane_ids[agent_id] = pane_id
-
 
     def get_pane_id(self, agent_id: str) -> str | None:
         return self._pane_ids.get(agent_id)
@@ -220,7 +220,6 @@ class TeamManager:
                     return name
         return None
 
-
     def drain_lead_mailbox(self) -> list[str]:
         notes: list[str] = []
         for team_name in list(self._teams.keys()):
@@ -260,28 +259,32 @@ class TeamManager:
         if member:
             self.set_member_idle(team_name, member.name)
 
-
     def _kill_pane(self, pane_id: str, backend_type: str) -> None:
         try:
             if backend_type == BackendType.TMUX.value:
                 from mewcode.teams.spawn_tmux import kill_pane
+
                 kill_pane(pane_id)
             elif backend_type == BackendType.ITERM2.value:
                 from mewcode.teams.spawn_iterm2 import kill_pane
+
                 kill_pane(pane_id)
         except Exception as e:
             log.warning("Failed to kill pane %s: %s", pane_id, e)
 
     def _cleanup_worktree(self, worktree_path: str) -> None:
         import subprocess
+
         try:
             subprocess.run(
                 ["git", "worktree", "remove", worktree_path, "--force"],
-                capture_output=True, timeout=10,
+                capture_output=True,
+                timeout=10,
             )
         except Exception as e:
             log.warning("git worktree remove failed for %s: %s", worktree_path, e)
             import shutil
+
             try:
                 if Path(worktree_path).exists():
                     shutil.rmtree(worktree_path, ignore_errors=True)
@@ -290,6 +293,7 @@ class TeamManager:
 
     def _remove_dir(self, path: Path) -> None:
         import shutil
+
         try:
             if path.exists():
                 shutil.rmtree(path, ignore_errors=True)

@@ -1,9 +1,5 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 """ContentReplacementState 的测试 —— 方案 A（就地修改原始对话历史）。"""
+
 from __future__ import annotations
 
 import json
@@ -24,19 +20,23 @@ from mewcode.context.manager import (
 )
 from mewcode.conversation import ConversationManager, Message, ToolResultBlock
 
+
 def _one_msg_conv(*results: ToolResultBlock) -> ConversationManager:
     conv = ConversationManager()
     conv.history.append(Message(role="user", content="", tool_results=list(results)))
     return conv
 
+
 # ---------------------------------------------------------------------------
 # 状态容器基础
 # ---------------------------------------------------------------------------
+
 
 def test_create_returns_empty() -> None:
     state = create_replacement_state()
     assert state.seen_ids == set()
     assert state.replacements == {}
+
 
 def test_clone_independent() -> None:
     src = create_replacement_state()
@@ -52,9 +52,11 @@ def test_clone_independent() -> None:
     assert cloned.seen_ids == {"a", "b"}
     assert cloned.replacements == {"a": "preview_a", "b": "preview_b"}
 
+
 # ---------------------------------------------------------------------------
 # 方案 A：apply 就地修改原始对话历史
 # ---------------------------------------------------------------------------
+
 
 def test_apply_mutates_conv_in_place(tmp_path: Path) -> None:
     big = "x" * (SINGLE_RESULT_CHAR_LIMIT + 100)
@@ -68,6 +70,7 @@ def test_apply_mutates_conv_in_place(tmp_path: Path) -> None:
     assert len(records) == 1
     assert records[0].tool_use_id == "t1"
 
+
 def test_first_call_freezes_unreplaced(tmp_path: Path) -> None:
     """未超出预算的结果必须被标记为已见，但不应加入 replacements。"""
     small = "x" * 100
@@ -80,9 +83,11 @@ def test_first_call_freezes_unreplaced(tmp_path: Path) -> None:
     assert state.replacements == {}
     assert records == []
 
+
 # ---------------------------------------------------------------------------
 # 跨轮次的逐字节一致回放
 # ---------------------------------------------------------------------------
+
 
 def test_replacement_idempotent(tmp_path: Path) -> None:
     """对同一个 conv 调用两次 apply，第二次不应产生新记录（幂等）。"""
@@ -102,9 +107,11 @@ def test_replacement_idempotent(tmp_path: Path) -> None:
     # 第二次只是纯粹的重新应用：不产生新记录
     assert recs2 == []
 
+
 # ---------------------------------------------------------------------------
 # 决策冻结：一旦被判定为「已见但未替换」，之后永不再替换
 # ---------------------------------------------------------------------------
+
 
 def test_frozen_never_replaced(tmp_path: Path) -> None:
     """在第 1 轮被判定为「未替换」的 id，绝不能在之后被选中替换，
@@ -134,6 +141,7 @@ def test_frozen_never_replaced(tmp_path: Path) -> None:
     assert t1.content == "a" * quarter
     assert "t1" not in state.replacements
 
+
 def test_aggregate_only_picks_fresh(tmp_path: Path) -> None:
     """当聚合大小超出预算、且只有新候选才有资格时，被冻结的 id 即便最大也不可碰。"""
     # 全部结果都低于 SINGLE_RESULT_CHAR_LIMIT，但聚合后 > AGGREGATE。
@@ -158,14 +166,17 @@ def test_aggregate_only_picks_fresh(tmp_path: Path) -> None:
     # 现在所有 id 都应在 seen_ids 中（每个都已做出决策）
     assert {"t1", "t2", "t3", "t4", "t5"} <= state.seen_ids
 
+
 # ---------------------------------------------------------------------------
 # 重建
 # ---------------------------------------------------------------------------
 
+
 def test_reconstruct_from_records() -> None:
     msgs = [
         Message(
-            role="user", content="",
+            role="user",
+            content="",
             tool_results=[
                 ToolResultBlock(tool_use_id="t1", content="raw"),
                 ToolResultBlock(tool_use_id="t2", content="raw"),
@@ -182,11 +193,13 @@ def test_reconstruct_from_records() -> None:
     assert state.seen_ids == {"t1", "t2"}
     assert state.replacements == {"t1": "t1_preview"}
 
+
 def test_reconstruct_with_inherited_parent() -> None:
     """分叉续接：用父级当前的 replacements 补齐记录中缺失的 id。"""
     msgs = [
         Message(
-            role="user", content="",
+            role="user",
+            content="",
             tool_results=[
                 ToolResultBlock(tool_use_id="t_parent", content="raw"),
                 ToolResultBlock(tool_use_id="t_child", content="raw"),
@@ -198,16 +211,20 @@ def test_reconstruct_with_inherited_parent() -> None:
     ]
     inherited = {"t_parent": "parent_preview"}
 
-    state = reconstruct_replacement_state(msgs, records, inherited_replacements=inherited)
+    state = reconstruct_replacement_state(
+        msgs, records, inherited_replacements=inherited
+    )
 
     assert state.replacements == {
         "t_child": "child_preview",
         "t_parent": "parent_preview",
     }
 
+
 # ---------------------------------------------------------------------------
 # Transcript（会话记录）I/O
 # ---------------------------------------------------------------------------
+
 
 def test_append_and_load_records_roundtrip(tmp_path: Path) -> None:
     recs = [
@@ -215,9 +232,12 @@ def test_append_and_load_records_roundtrip(tmp_path: Path) -> None:
         ContentReplacementRecord(tool_use_id="b", replacement="bbb"),
     ]
     append_replacement_records(tmp_path, recs)
-    append_replacement_records(tmp_path, [
-        ContentReplacementRecord(tool_use_id="c", replacement="ccc"),
-    ])
+    append_replacement_records(
+        tmp_path,
+        [
+            ContentReplacementRecord(tool_use_id="c", replacement="ccc"),
+        ],
+    )
 
     out = load_replacement_records(tmp_path)
     assert [r.tool_use_id for r in out] == ["a", "b", "c"]

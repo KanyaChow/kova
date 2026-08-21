@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -18,11 +13,13 @@ async def test_successful_edit_returns_colorable_diff(tmp_path: Path):
     file.write_text("def format_date(d):\n    return str(d)\n", encoding="utf-8")
 
     tool = EditFile()
-    result = await tool.execute(Params(
-        file_path=str(file),
-        old_string="def format_date(d):",
-        new_string="def format_date(d, tz=None):",
-    ))
+    result = await tool.execute(
+        Params(
+            file_path=str(file),
+            old_string="def format_date(d):",
+            new_string="def format_date(d, tz=None):",
+        )
+    )
 
     assert not result.is_error
     assert result.output.startswith("Updated")
@@ -38,9 +35,11 @@ async def test_successful_edit_returns_colorable_diff(tmp_path: Path):
 @pytest.mark.asyncio
 async def test_nonexistent_file_is_error():
     tool = EditFile()
-    result = await tool.execute(Params(
-        file_path="/nonexistent/path.txt",
-        old_string="a",
-        new_string="b",
-    ))
+    result = await tool.execute(
+        Params(
+            file_path="/nonexistent/path.txt",
+            old_string="a",
+            new_string="b",
+        )
+    )
     assert result.is_error

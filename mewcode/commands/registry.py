@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import asyncio
@@ -18,7 +14,6 @@ class CommandType(str, Enum):
 
 class UIController(Protocol):
     def add_system_message(self, text: str) -> None: ...
-
 
     def send_user_message(self, text: str) -> None: ...
     def set_plan_mode(self, enabled: bool) -> None: ...
@@ -54,8 +49,6 @@ class Command:
 
 
 class CommandRegistry:
-
-
     def __init__(self) -> None:
         self._commands: dict[str, Command] = {}
         self._alias_map: dict[str, str] = {}
@@ -90,7 +83,6 @@ class CommandRegistry:
         for alias in command.aliases:
             self._alias_map[alias] = command.name
 
-
     def find(self, name: str) -> Command | None:
         if name in self._commands:
             return self._commands[name]
@@ -98,7 +90,6 @@ class CommandRegistry:
         if canon:
             return self._commands.get(canon)
         return None
-
 
     def list_commands(self) -> list[Command]:
         return [cmd for cmd in self._commands.values() if not cmd.hidden]

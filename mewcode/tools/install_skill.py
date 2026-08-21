@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Callable
@@ -17,7 +13,7 @@ if TYPE_CHECKING:
 class InstallSkillParams(BaseModel):
     url: str = Field(
         description=(
-            'The Skill URL to fetch. Examples: '
+            "The Skill URL to fetch. Examples: "
             '"https://www.skills.sh/anthropics/skills/frontend-design", '
             '"https://github.com/anthropics/skills/tree/main/skills/pdf".'
         )

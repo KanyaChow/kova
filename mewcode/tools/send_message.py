@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import logging
@@ -40,7 +36,6 @@ class SendMessageTool(Tool):
     category = "command"
     is_concurrency_safe = True
 
-
     def __init__(
         self,
         team_manager: TeamManager,
@@ -52,7 +47,6 @@ class SendMessageTool(Tool):
         self._team_name = team_name
         self._from_agent_id = from_agent_id
         self._from_agent_name = from_agent_name
-
 
     async def execute(self, params: BaseModel) -> ToolResult:
         p: SendMessageParams = params  # type: ignore[assignment]
@@ -74,11 +68,15 @@ class SendMessageTool(Tool):
 
         team = self._team_manager.get_team(self._team_name)
         if team is None:
-            return ToolResult(output=f"Team '{self._team_name}' not found", is_error=True)
+            return ToolResult(
+                output=f"Team '{self._team_name}' not found", is_error=True
+            )
 
         mailbox = self._team_manager.get_mailbox(self._team_name)
         if mailbox is None:
-            return ToolResult(output=f"Mailbox not found for team '{self._team_name}'", is_error=True)
+            return ToolResult(
+                output=f"Mailbox not found for team '{self._team_name}'", is_error=True
+            )
 
         msg = create_message(
             from_agent=self._from_agent_name or self._from_agent_id,
@@ -93,14 +91,15 @@ class SendMessageTool(Tool):
 
         if p.to == "*":
             member_ids = [
-                m.agent_id for m in team.members
-                if m.agent_id != self._from_agent_id
+                m.agent_id for m in team.members if m.agent_id != self._from_agent_id
             ]
             if team.lead_agent_id != self._from_agent_id:
                 member_ids.append(team.lead_agent_id)
             mailbox.broadcast(member_ids, msg, exclude=self._from_agent_id)
             self._wake_pane_members(team, member_ids)
-            return ToolResult(output=f"Message broadcast to {len(member_ids)} teammates.")
+            return ToolResult(
+                output=f"Message broadcast to {len(member_ids)} teammates."
+            )
 
         target_id = registry.resolve(p.to)
         if target_id is None:
@@ -114,13 +113,13 @@ class SendMessageTool(Tool):
 
         return ToolResult(output=f"Message sent to '{p.to}'.")
 
-
     def _wake_pane(self, agent_id: str) -> None:
         pane_id = self._team_manager.get_pane_id(agent_id)
         if pane_id is None:
             return
         try:
             from mewcode.teams.spawn_tmux import send_keys_to_pane
+
             send_keys_to_pane(pane_id, "")
         except Exception:
             pass

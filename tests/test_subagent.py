@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 """SubAgent 系统的测试（第 12 章）。"""
 
 from __future__ import annotations
@@ -15,7 +10,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from mewcode.agents.parser import AgentDef, AgentParseError, parse_agent_file, parse_frontmatter
+from mewcode.agents.parser import (
+    AgentDef,
+    AgentParseError,
+    parse_agent_file,
+    parse_frontmatter,
+)
 from mewcode.agents.loader import AgentLoader
 from mewcode.agents.tool_filter import (
     ALL_AGENT_DISALLOWED_TOOLS,
@@ -29,14 +29,23 @@ from mewcode.agents.fork import (
 )
 from mewcode.agents.trace import TraceManager, TraceNode
 from mewcode.agents.task_manager import BackgroundTask, TaskManager
-from mewcode.agents.notification import format_task_notification, inject_task_notifications
-from mewcode.conversation import ConversationManager, Message, ToolResultBlock, ToolUseBlock
+from mewcode.agents.notification import (
+    format_task_notification,
+    inject_task_notifications,
+)
+from mewcode.conversation import (
+    ConversationManager,
+    Message,
+    ToolResultBlock,
+    ToolUseBlock,
+)
 from mewcode.tools import ToolRegistry
 from mewcode.tools.base import Tool, ToolResult
 
 # =====================================================================
 # 辅助函数
 # =====================================================================
+
 
 class DummyTool(Tool):
     params_model = MagicMock
@@ -54,11 +63,13 @@ class DummyTool(Tool):
     async def execute(self, params):
         return ToolResult(output=f"{self.name} executed")
 
+
 def make_registry(*tool_names: str) -> ToolRegistry:
     reg = ToolRegistry()
     for name in tool_names:
         reg.register(DummyTool(name))
     return reg
+
 
 def make_agent_md(
     name: str = "test-agent",
@@ -72,9 +83,11 @@ def make_agent_md(
     frontmatter = "\n".join(lines)
     return f"---\n{frontmatter}\n---\n\n{body}"
 
+
 # =====================================================================
 # 1. Agent 定义解析
 # =====================================================================
+
 
 class TestAgentParser:
     def test_parse_valid_agent(self, tmp_path: Path):
@@ -174,7 +187,9 @@ class TestAgentParser:
     def test_valid_permission_modes(self, tmp_path: Path):
         for mode in ("default", "acceptEdits", "bypassPermissions"):
             f = tmp_path / f"{mode}.md"
-            f.write_text(f"---\nname: t\ndescription: t\npermissionMode: {mode}\n---\nbody")
+            f.write_text(
+                f"---\nname: t\ndescription: t\npermissionMode: {mode}\n---\nbody"
+            )
             agent_def = parse_agent_file(f)
             assert agent_def.permission_mode == mode
 
@@ -185,9 +200,11 @@ class TestAgentParser:
             agent_def = parse_agent_file(f)
             assert agent_def.model == model
 
+
 # =====================================================================
 # 2. Agent 加载器
 # =====================================================================
+
 
 class TestAgentLoader:
     def test_load_builtins(self, tmp_path: Path):
@@ -271,17 +288,16 @@ class TestAgentLoader:
         assert "good" in agents
         assert "bad" not in agents
 
+
 # =====================================================================
 # 3. 工具过滤
 # =====================================================================
 
-class TestToolFilter:
 
+class TestToolFilter:
     def test_global_disallowed(self):
         reg = make_registry("ReadFile", "Agent", "Bash", "AskUserQuestion")
-        definition = AgentDef(
-            agent_type="test", when_to_use="test", source="builtin"
-        )
+        definition = AgentDef(agent_type="test", when_to_use="test", source="builtin")
         filtered = resolve_agent_tools(reg, definition)
         names = {t.name for t in filtered.list_tools()}
         assert "Agent" not in names
@@ -314,10 +330,16 @@ class TestToolFilter:
         assert names == {"ReadFile", "Grep"}
 
     def test_background_whitelist(self):
-        reg = make_registry("ReadFile", "EditFile", "WriteFile", "Bash", "Grep", "Agent", "SomeOtherTool")
-        definition = AgentDef(
-            agent_type="test", when_to_use="test", source="builtin"
+        reg = make_registry(
+            "ReadFile",
+            "EditFile",
+            "WriteFile",
+            "Bash",
+            "Grep",
+            "Agent",
+            "SomeOtherTool",
         )
+        definition = AgentDef(agent_type="test", when_to_use="test", source="builtin")
         filtered = resolve_agent_tools(reg, definition, is_background=True)
         names = {t.name for t in filtered.list_tools()}
         assert "Agent" not in names
@@ -340,9 +362,7 @@ class TestToolFilter:
 
     def test_custom_agent_extra_restrictions(self):
         reg = make_registry("ReadFile", "EnterPlanMode", "ExitPlanMode")
-        definition = AgentDef(
-            agent_type="test", when_to_use="test", source="project"
-        )
+        definition = AgentDef(agent_type="test", when_to_use="test", source="project")
         filtered = resolve_agent_tools(reg, definition)
         names = {t.name for t in filtered.list_tools()}
         assert "EnterPlanMode" not in names
@@ -355,17 +375,17 @@ class TestToolFilter:
         # 会跳过 custom 这一层。由于 Go 版本会把 ALL 克隆进 CUSTOM，
         # 这里只验证内置 agent 仍然能拿到正常的工具。
         reg = make_registry("ReadFile", "Bash", "Grep")
-        definition = AgentDef(
-            agent_type="test", when_to_use="test", source="builtin"
-        )
+        definition = AgentDef(agent_type="test", when_to_use="test", source="builtin")
         filtered = resolve_agent_tools(reg, definition)
         names = {t.name for t in filtered.list_tools()}
         assert "ReadFile" in names
         assert "Bash" in names
 
+
 # =====================================================================
 # 4. Fork 模式
 # =====================================================================
+
 
 class TestForkMode:
     def test_basic_fork(self):
@@ -398,7 +418,13 @@ class TestForkMode:
         conv.add_user_message("Hello")
         conv.add_assistant_message(
             "Let me check",
-            [ToolUseBlock(tool_use_id="tu1", tool_name="ReadFile", arguments={"file_path": "x"})],
+            [
+                ToolUseBlock(
+                    tool_use_id="tu1",
+                    tool_name="ReadFile",
+                    arguments={"file_path": "x"},
+                )
+            ],
         )
 
         forked = build_forked_messages(conv, "task")
@@ -425,9 +451,11 @@ class TestForkMode:
         assert len(conv.history) == 1
         assert len(forked.history) == 3  # 原始消息 + fork 任务 + 额外消息
 
+
 # =====================================================================
 # 5. Trace 管理器
 # =====================================================================
+
 
 class TestTraceManager:
     def test_create_node(self):
@@ -495,9 +523,11 @@ class TestTraceManager:
         tm = TraceManager()
         tm.complete("nope", "failed")
 
+
 # =====================================================================
 # 6. 任务管理器
 # =====================================================================
+
 
 class TestTaskManager:
     @pytest.fixture
@@ -590,9 +620,11 @@ class TestTaskManager:
         tm = TaskManager()
         assert tm.cancel("nope") is False
 
+
 # =====================================================================
 # 7. 通知
 # =====================================================================
+
 
 class TestNotification:
     def test_format_notification(self):
@@ -631,14 +663,24 @@ class TestNotification:
     def test_inject_notifications(self):
         conv = ConversationManager()
         bg1 = BackgroundTask(
-            id="t1", name="a1", agent=MagicMock(), task="t",
-            status="completed", result="r1",
-            start_time=100.0, end_time=105.0,
+            id="t1",
+            name="a1",
+            agent=MagicMock(),
+            task="t",
+            status="completed",
+            result="r1",
+            start_time=100.0,
+            end_time=105.0,
         )
         bg2 = BackgroundTask(
-            id="t2", name="a2", agent=MagicMock(), task="t",
-            status="failed", result="r2",
-            start_time=100.0, end_time=110.0,
+            id="t2",
+            name="a2",
+            agent=MagicMock(),
+            task="t",
+            status="failed",
+            result="r2",
+            start_time=100.0,
+            end_time=110.0,
         )
         inject_task_notifications(conv, [bg1, bg2])
         assert len(conv.history) == 2
@@ -647,29 +689,36 @@ class TestNotification:
         assert "t1" in conv.history[0].content
         assert "t2" in conv.history[1].content
 
+
 # =====================================================================
 # 8. 配置
 # =====================================================================
 
+
 class TestConfig:
     def test_enable_fork_default(self, tmp_path: Path):
         from mewcode.config import load_config
+
         cfg = tmp_path / "config.yaml"
-        cfg.write_text(textwrap.dedent("""\
+        cfg.write_text(
+            textwrap.dedent("""\
         providers:
           - name: test
             protocol: anthropic
             base_url: https://api.example.com
             model: claude-3
-        """))
+        """)
+        )
         config = load_config(cfg)
         assert config.enable_fork is False
         assert config.enable_verification_agent is False
 
     def test_enable_fork_true(self, tmp_path: Path):
         from mewcode.config import load_config
+
         cfg = tmp_path / "config.yaml"
-        cfg.write_text(textwrap.dedent("""\
+        cfg.write_text(
+            textwrap.dedent("""\
         providers:
           - name: test
             protocol: anthropic
@@ -677,30 +726,37 @@ class TestConfig:
             model: claude-3
         enable_fork: true
         enable_verification_agent: true
-        """))
+        """)
+        )
         config = load_config(cfg)
         assert config.enable_fork is True
         assert config.enable_verification_agent is True
+
 
 # =====================================================================
 # 9. 权限模式
 # =====================================================================
 
+
 class TestPermissionMode:
     def test_bypass_mode(self):
         from mewcode.permissions.modes import PermissionMode, mode_decide
+
         assert PermissionMode.BYPASS.value == "bypassPermissions"
         assert mode_decide(PermissionMode.BYPASS, "read") == "allow"
         assert mode_decide(PermissionMode.BYPASS, "write") == "allow"
         assert mode_decide(PermissionMode.BYPASS, "command") == "allow"
 
+
 # =====================================================================
 # 10. AgentTool 参数
 # =====================================================================
 
+
 class TestAgentToolParams:
     def test_required_fields(self):
         from mewcode.tools.agent_tool import AgentToolParams
+
         params = AgentToolParams(prompt="do this", description="test")
         assert params.prompt == "do this"
         assert params.subagent_type is None
@@ -708,6 +764,7 @@ class TestAgentToolParams:
 
     def test_optional_fields(self):
         from mewcode.tools.agent_tool import AgentToolParams
+
         params = AgentToolParams(
             prompt="do",
             description="test",
@@ -723,13 +780,16 @@ class TestAgentToolParams:
         assert params.name == "my-agent"
         assert params.isolation == "worktree"
 
+
 # =====================================================================
 # 11. Agent（run_to_completion 基础功能、agent_id、trace_id）
 # =====================================================================
 
+
 class TestAgentExtensions:
     def test_agent_has_id(self):
         from mewcode.agent import Agent
+
         client = MagicMock()
         registry = ToolRegistry()
         agent = Agent(client=client, registry=registry, protocol="anthropic")
@@ -740,6 +800,7 @@ class TestAgentExtensions:
 
     def test_agent_catalog(self):
         from mewcode.agent import Agent
+
         client = MagicMock()
         registry = ToolRegistry()
         agent = Agent(client=client, registry=registry, protocol="anthropic")

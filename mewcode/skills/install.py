@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import base64
@@ -19,8 +15,8 @@ import httpx
 log = logging.getLogger(__name__)
 
 # --- 安全限制：防止恶意 / 错误 URL 拉取过多数据 ---
-MAX_FILE_SIZE = 1 << 20       # 单文件 1 MiB
-MAX_TOTAL_SIZE = 8 << 20      # 整个 skill 8 MiB
+MAX_FILE_SIZE = 1 << 20  # 单文件 1 MiB
+MAX_TOTAL_SIZE = 8 << 20  # 整个 skill 8 MiB
 MAX_FILE_COUNT = 64
 MAX_RECURSION_DEPTH = 4
 HTTP_TIMEOUT = 30.0
@@ -35,20 +31,23 @@ GITHUB_API_BASE = "https://api.github.com"
 # 数据结构
 # ------------------------------------------------------------------
 
+
 @dataclass
 class SkillSource:
     """解析后的 skill 来源信息，最终统一走 GitHub Contents API 拉取。"""
+
     owner: str
     repo: str
-    ref: str            # 分支或 tag，默认 "main"
-    subpath: str        # 仓库内 skill 目录的路径（无尾 /）
-    name: str           # skill 名称（subpath 最后一段）
-    original: str       # 用户原始 URL
+    ref: str  # 分支或 tag，默认 "main"
+    subpath: str  # 仓库内 skill 目录的路径（无尾 /）
+    name: str  # skill 名称（subpath 最后一段）
+    original: str  # 用户原始 URL
 
 
 @dataclass
 class InstallReport:
     """安装完成后的汇报信息。"""
+
     skill_name: str = ""
     target_dir: str = ""
     file_count: int = 0
@@ -58,6 +57,7 @@ class InstallReport:
 # ------------------------------------------------------------------
 # URL 解析：支持三种格式
 # ------------------------------------------------------------------
+
 
 def parse_skill_url(raw: str) -> SkillSource:
     """将用户提供的 URL 解析为 SkillSource。
@@ -93,7 +93,9 @@ def parse_skill_url(raw: str) -> SkillSource:
     if host == "github.com":
         # /<owner>/<repo>/tree/<ref>/<...subpath>
         if len(parts) < 5 or parts[2] != "tree":
-            raise ValueError("github.com URL must be /<owner>/<repo>/tree/<ref>/<subpath>")
+            raise ValueError(
+                "github.com URL must be /<owner>/<repo>/tree/<ref>/<subpath>"
+            )
         sub = "/".join(parts[4:])
         return SkillSource(
             owner=parts[0],
@@ -130,12 +132,14 @@ def parse_skill_url(raw: str) -> SkillSource:
 # GitHub Contents API 拉取
 # ------------------------------------------------------------------
 
+
 @dataclass
 class _ContentEntry:
     """GitHub Contents API 返回的单条条目。"""
+
     name: str
     path: str
-    type: str          # "file" | "dir" | "symlink" | "submodule"
+    type: str  # "file" | "dir" | "symlink" | "submodule"
     download_url: str | None = None
     content: str | None = None
     encoding: str | None = None
@@ -182,9 +186,7 @@ async def _list_contents(
     return _parse_entries(resp.json())
 
 
-async def _fetch_blob(
-    client: httpx.AsyncClient, entry: _ContentEntry
-) -> bytes:
+async def _fetch_blob(client: httpx.AsyncClient, entry: _ContentEntry) -> bytes:
     """下载单个文件内容。优先用内联 base64，回退到 download_url。"""
     if entry.size > MAX_FILE_SIZE:
         raise RuntimeError(
@@ -207,6 +209,7 @@ async def _fetch_blob(
 # ------------------------------------------------------------------
 # 递归下载 + 安全校验
 # ------------------------------------------------------------------
+
 
 async def _walk_and_download(
     client: httpx.AsyncClient,
@@ -243,9 +246,7 @@ async def _walk_and_download(
 
         elif entry.type == "dir":
             target.mkdir(parents=True, exist_ok=True)
-            await _walk_and_download(
-                client, src, entry.path, target, report, depth + 1
-            )
+            await _walk_and_download(client, src, entry.path, target, report, depth + 1)
         # symlink / submodule 直接跳过
 
 
@@ -276,6 +277,7 @@ def user_skills_root() -> Path:
 # ------------------------------------------------------------------
 # 安装主流程
 # ------------------------------------------------------------------
+
 
 async def install_skill(
     src: SkillSource,

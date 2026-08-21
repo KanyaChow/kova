@@ -1,14 +1,10 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 """自动记忆管理器（对齐 Go 版 memory.Manager + memdir + paths）。
 
 使用独立 .md 文件 + frontmatter + MEMORY.md 索引的存储格式，
 替代旧版集中式 memories.md。每条记忆存为一个文件，MEMORY.md
 只保存索引指针。
 """
+
 from __future__ import annotations
 
 import os
@@ -44,6 +40,7 @@ _FRONTMATTER_RE = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 # ---------------------------------------------------------------------------
 # 路径工具函数（对齐 Go 版 paths.go）
 # ---------------------------------------------------------------------------
+
 
 def get_auto_mem_path(project_root: str) -> str:
     """返回项目级记忆目录路径：<projectRoot>/.mewcode/memory/。
@@ -95,9 +92,11 @@ def ensure_memory_dir_exists(memory_dir: str) -> None:
 # Frontmatter 解析（对齐 Go 版 parseFrontmatter）
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class MemoryFile:
     """一个记忆文件的元信息。"""
+
     path: str = ""
     name: str = ""
     description: str = ""
@@ -118,7 +117,7 @@ def parse_frontmatter(content: str) -> MemoryFile:
         if colon < 0:
             continue
         key = line[:colon].strip()
-        val = line[colon + 1:].strip()
+        val = line[colon + 1 :].strip()
         # 去除引号
         if len(val) >= 2 and (
             (val.startswith('"') and val.endswith('"'))
@@ -137,6 +136,7 @@ def parse_frontmatter(content: str) -> MemoryFile:
 # ---------------------------------------------------------------------------
 # MEMORY.md 截断（对齐 Go 版 TruncateEntrypointContent）
 # ---------------------------------------------------------------------------
+
 
 def truncate_entrypoint_content(raw: str) -> str:
     """截断 MEMORY.md 内容，超过行数或字节限制时添加警告。"""
@@ -192,6 +192,7 @@ def _format_size(byte_count: int) -> str:
 # 构建记忆系统提示（对齐 Go 版 BuildMemoryPrompt）
 # ---------------------------------------------------------------------------
 
+
 def build_memory_prompt(user_mem_dir: str, project_mem_dir: str) -> str:
     """构建记忆系统提示，包含行为指令和 MEMORY.md 索引内容。
 
@@ -223,7 +224,10 @@ def _build_entrypoint_section(scope_label: str, entrypoint_path: str) -> str:
             return header + "\n" + truncate_entrypoint_content(data)
     except OSError:
         pass
-    return header + f"\nThis {ENTRYPOINT_NAME} is currently empty. When you save new {scope_label.lower()}-level memories, add their pointers here."
+    return (
+        header
+        + f"\nThis {ENTRYPOINT_NAME} is currently empty. When you save new {scope_label.lower()}-level memories, add their pointers here."
+    )
 
 
 def _build_memory_lines(user_mem_dir: str, project_mem_dir: str) -> str:
@@ -295,6 +299,7 @@ def _build_memory_lines(user_mem_dir: str, project_mem_dir: str) -> str:
 # MemoryManager（对齐 Go 版 Manager）
 # ---------------------------------------------------------------------------
 
+
 class MemoryManager:
     """管理双路径自动记忆目录（用户级 + 项目级）。
 
@@ -327,7 +332,11 @@ class MemoryManager:
     @property
     def user_mem_dir(self) -> Path:
         """用户级记忆目录（~/.mewcode/memory/）。"""
-        return Path(self._user_mem_dir.rstrip(os.sep)) if self._user_mem_dir else Path.home() / ".mewcode" / "memory"
+        return (
+            Path(self._user_mem_dir.rstrip(os.sep))
+            if self._user_mem_dir
+            else Path.home() / ".mewcode" / "memory"
+        )
 
     @property
     def project_mem_dir(self) -> Path:
@@ -404,7 +413,7 @@ class MemoryManager:
         """
         from mewcode.tools.base import StreamEnd, TextDelta
 
-        recent = conversation.history[self._last_extraction_msg_count:]
+        recent = conversation.history[self._last_extraction_msg_count :]
         if not recent:
             return
 
@@ -463,7 +472,11 @@ class MemoryManager:
         self._last_extraction_msg_count = len(conversation.history)
 
         # 解析并写入记忆文件
-        if not collected or collected.strip() == "NONE" or "MEMORY_NAME:" not in collected:
+        if (
+            not collected
+            or collected.strip() == "NONE"
+            or "MEMORY_NAME:" not in collected
+        ):
             return
 
         blocks = [b for b in collected.split("---") if "MEMORY_NAME:" in b]
@@ -478,7 +491,9 @@ class MemoryManager:
                 mtype = "reference"
 
             # 路由到正确的目录
-            target_dir = self._user_mem_dir if mtype in _USER_LEVEL_TYPES else self._mem_dir
+            target_dir = (
+                self._user_mem_dir if mtype in _USER_LEVEL_TYPES else self._mem_dir
+            )
             if not target_dir:
                 continue
             ensure_memory_dir_exists(target_dir)
@@ -494,7 +509,9 @@ class MemoryManager:
             idx_path = Path(target_dir) / ENTRYPOINT_NAME
             idx_line = f"- [{name}]({name}.md) — {desc}\n"
             try:
-                existing = idx_path.read_text(encoding="utf-8") if idx_path.exists() else ""
+                existing = (
+                    idx_path.read_text(encoding="utf-8") if idx_path.exists() else ""
+                )
                 if f"{name}.md" not in existing:
                     idx_path.write_text(existing + idx_line, encoding="utf-8")
             except OSError:
@@ -524,6 +541,7 @@ class MemoryManager:
 # ---------------------------------------------------------------------------
 # 内部辅助函数
 # ---------------------------------------------------------------------------
+
 
 def _load_dir(dir_path: str) -> list[MemoryFile]:
     """扫描目录中的 .md 文件，解析 frontmatter 并返回 MemoryFile 列表。"""

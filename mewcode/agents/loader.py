@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import importlib.resources
@@ -17,8 +13,6 @@ USER_AGENTS_DIR = "~/.mewcode/agents"
 
 
 class AgentLoader:
-
-
     def __init__(
         self,
         work_dir: str,
@@ -27,7 +21,6 @@ class AgentLoader:
         self._work_dir = work_dir
         self._enable_verification = enable_verification
         self._agents: dict[str, AgentDef] = {}
-
 
     def _scan_directory(self, path: Path, source: str) -> list[AgentDef]:
         results: list[AgentDef] = []
@@ -46,7 +39,6 @@ class AgentLoader:
                 log.warning("Skipping agent file %s: %s", entry, e)
         return results
 
-
     def _load_builtins(self) -> list[AgentDef]:
         results: list[AgentDef] = []
         try:
@@ -60,7 +52,10 @@ class AgentLoader:
                 continue
             try:
                 raw = item.read_text(encoding="utf-8")
-                from mewcode.agents.parser import parse_frontmatter, _validate_agent_meta
+                from mewcode.agents.parser import (
+                    parse_frontmatter,
+                    _validate_agent_meta,
+                )
 
                 meta, body = parse_frontmatter(raw)
                 _validate_agent_meta(meta, item.name)
@@ -116,7 +111,6 @@ class AgentLoader:
         self._agents = seen
         return seen
 
-
     def get(self, agent_type: str) -> AgentDef | None:
         cached = self._agents.get(agent_type)
         if cached is None:
@@ -137,11 +131,8 @@ class AgentLoader:
                 )
         return cached
 
-
     def list_agents(self) -> list[tuple[str, str]]:
-        return [
-            (ad.agent_type, ad.when_to_use) for ad in self._agents.values()
-        ]
+        return [(ad.agent_type, ad.when_to_use) for ad in self._agents.values()]
 
     def register_plugin_source(self, path: Path) -> None:
         pass

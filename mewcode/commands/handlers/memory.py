@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from mewcode.commands.registry import Command, CommandContext, CommandType
@@ -13,7 +8,6 @@ async def handle_memory(ctx: CommandContext) -> None:
     if mm is None:
         ctx.ui.add_system_message("记忆管理器未初始化")
         return
-
 
     parts = ctx.args.split(None, 1)
     sub = parts[0] if parts else ""
@@ -38,9 +32,7 @@ async def handle_memory(ctx: CommandContext) -> None:
         )
 
     else:
-        ctx.ui.add_system_message(
-            "用法: /memory [list | clear | edit]"
-        )
+        ctx.ui.add_system_message("用法: /memory [list | clear | edit]")
 
 
 MEMORY_COMMAND = Command(
@@ -50,4 +42,3 @@ MEMORY_COMMAND = Command(
     type=CommandType.LOCAL,
     handler=handle_memory,
 )
-

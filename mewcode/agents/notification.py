@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -27,7 +22,6 @@ def format_task_notification(task: BackgroundTask) -> str:
             elapsed = f"{secs / 60:.1f}m"
         else:
             elapsed = f"{secs:.1f}s"
-
 
     tokens = ""
     if task.progress.input_tokens or task.progress.output_tokens:
@@ -55,4 +49,3 @@ def inject_task_notifications(
     for task in completed_tasks:
         notification = format_task_notification(task)
         conversation.add_user_message(notification)
-

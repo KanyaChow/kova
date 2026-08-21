@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import re
@@ -31,7 +27,6 @@ class Rule:
     tool_name: str
     pattern: str
     effect: Effect
-
 
     def matches(self, tool_name: str, content: str) -> bool:
         if self.tool_name != tool_name:
@@ -78,8 +73,6 @@ def _load_rules_file(path: Path) -> list[Rule]:
 
 
 class RuleEngine:
-
-
     def __init__(
         self,
         user_rules_path: Path | None = None,
@@ -96,7 +89,6 @@ class RuleEngine:
             tiers.append(_load_rules_file(p) if p else [])
         return tiers
 
-
     def evaluate(self, tool_name: str, content: str) -> Effect | None:
         for rules in self._load_tiers():
             for rule in reversed(rules):
@@ -104,12 +96,16 @@ class RuleEngine:
                     return rule.effect
         return None
 
-
     def append_local_rule(self, rule: Rule) -> None:
         if self._local_path is None:
             return
         self._local_path.parent.mkdir(parents=True, exist_ok=True)
         existing = _load_rules_file(self._local_path)
         existing.append(rule)
-        entries = [{"rule": f"{r.tool_name}({r.pattern})", "effect": r.effect} for r in existing]
-        self._local_path.write_text(yaml.dump(entries, allow_unicode=True), encoding="utf-8")
+        entries = [
+            {"rule": f"{r.tool_name}({r.pattern})", "effect": r.effect}
+            for r in existing
+        ]
+        self._local_path.write_text(
+            yaml.dump(entries, allow_unicode=True), encoding="utf-8"
+        )

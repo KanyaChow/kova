@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import json
@@ -68,7 +64,6 @@ class AgentTeam:
                 return m
         return None
 
-
     def add_member(self, member: TeammateInfo) -> None:
         self.members.append(member)
 
@@ -79,7 +74,6 @@ class AgentTeam:
                 return True
         return False
 
-
     def set_member_active(self, name: str, is_active: bool | None) -> bool:
         member = self.get_member(name)
         if member is None:
@@ -89,7 +83,6 @@ class AgentTeam:
 
     def all_idle(self) -> bool:
         return all(m.is_active is False for m in self.members)
-
 
     def active_members(self) -> list[TeammateInfo]:
         return [m for m in self.members if m.is_active is not False]
@@ -102,7 +95,6 @@ class AgentTeam:
             "config_path": self.config_path,
             "description": self.description,
         }
-
 
     @classmethod
     def from_dict(cls, data: dict) -> AgentTeam:
@@ -118,7 +110,9 @@ class AgentTeam:
     def save(self) -> None:
         path = Path(self.config_path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(self.to_dict(), indent=2, ensure_ascii=False), encoding="utf-8")
+        path.write_text(
+            json.dumps(self.to_dict(), indent=2, ensure_ascii=False), encoding="utf-8"
+        )
 
     @classmethod
     def load(cls, config_path: str) -> AgentTeam:

@@ -1,13 +1,9 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 """记忆治理 E2E 测试。
 
 需要环境变量 MEWCODE_TEST_API_KEY、MEWCODE_TEST_BASE_URL、MEWCODE_TEST_MODEL。
 运行：pytest tests/test_consolidation.py -v -s
 """
+
 import asyncio
 import os
 import tempfile
@@ -16,7 +12,9 @@ from pathlib import Path
 import pytest
 
 
-def write_memory(mem_dir: str, filename: str, mem_type: str, name: str, desc: str, body: str):
+def write_memory(
+    mem_dir: str, filename: str, mem_type: str, name: str, desc: str, body: str
+):
     content = f"""---
 name: {name}
 description: {desc}
@@ -33,17 +31,32 @@ def setup_test_memories(mem_dir: str):
     """构造有重复记忆的测试场景"""
     os.makedirs(mem_dir, exist_ok=True)
 
-    write_memory(mem_dir, "feedback_no_push.md", "feedback", "no-push",
-                 "Don't push without asking",
-                 "用户不希望自动 push 代码")
+    write_memory(
+        mem_dir,
+        "feedback_no_push.md",
+        "feedback",
+        "no-push",
+        "Don't push without asking",
+        "用户不希望自动 push 代码",
+    )
 
-    write_memory(mem_dir, "feedback_auto_push.md", "feedback", "auto-push",
-                 "Don't auto push code",
-                 "用户不喜欢自动 push，每次都要先问一下")
+    write_memory(
+        mem_dir,
+        "feedback_auto_push.md",
+        "feedback",
+        "auto-push",
+        "Don't auto push code",
+        "用户不喜欢自动 push，每次都要先问一下",
+    )
 
-    write_memory(mem_dir, "user_role.md", "user", "user-role",
-                 "User is a backend engineer",
-                 "用户是后端工程师，主要用 Go 和 Java")
+    write_memory(
+        mem_dir,
+        "user_role.md",
+        "user",
+        "user-role",
+        "User is a backend engineer",
+        "用户是后端工程师，主要用 Go 和 Java",
+    )
 
     Path(os.path.join(mem_dir, "MEMORY.md")).write_text(
         "- [No push](feedback_no_push.md) — 不要自动 push\n"
@@ -56,8 +69,12 @@ def setup_test_memories(mem_dir: str):
 # 门控逻辑单元测试
 # =========================================================================
 
+
 def test_lock_first_acquire():
-    from mewcode.memory.consolidation import _read_last_consolidated_at, _try_acquire_lock
+    from mewcode.memory.consolidation import (
+        _read_last_consolidated_at,
+        _try_acquire_lock,
+    )
 
     with tempfile.TemporaryDirectory() as d:
         assert _read_last_consolidated_at(d) == 0
@@ -123,9 +140,18 @@ def test_prompt_contains_all_phases():
     from mewcode.memory.consolidation import _build_consolidation_prompt
 
     prompt = _build_consolidation_prompt("/mem", "/user/mem", "/sessions", ["s1", "s2"])
-    for want in ["Phase 1", "Phase 2", "Phase 3", "Phase 4",
-                 "MEMORY.md", "/mem", "/user/mem", "s1", "s2",
-                 "Sessions since last consolidation (2)"]:
+    for want in [
+        "Phase 1",
+        "Phase 2",
+        "Phase 3",
+        "Phase 4",
+        "MEMORY.md",
+        "/mem",
+        "/user/mem",
+        "s1",
+        "s2",
+        "Sessions since last consolidation (2)",
+    ]:
         assert want in prompt, f"prompt missing {want!r}"
 
 
@@ -133,9 +159,9 @@ def test_prompt_contains_all_phases():
 # E2E 测试：真实 LLM 整理
 # =========================================================================
 
+
 @pytest.mark.skipif(
-    not os.environ.get("MEWCODE_TEST_API_KEY"),
-    reason="MEWCODE_TEST_API_KEY not set"
+    not os.environ.get("MEWCODE_TEST_API_KEY"), reason="MEWCODE_TEST_API_KEY not set"
 )
 @pytest.mark.timeout(120)
 def test_e2e_consolidation_merges_duplicates():
@@ -188,6 +214,7 @@ async def _run_consolidation(work_dir, api_key, base_url, model, mem_dir):
     from mewcode.permissions.rules import RuleEngine
     from mewcode.permissions.dangerous import DangerousCommandDetector
     from mewcode.permissions.checker import PermissionMode
+
     sandbox = PathSandbox(mem_dir)
     checker = PermissionChecker(
         detector=DangerousCommandDetector(),

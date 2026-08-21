@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import logging
@@ -29,7 +25,6 @@ class MCPClient:
         # 存储 MCP 服务器的 InitializeResult，用于提取 instructions 等元信息
         self._init_result: types.InitializeResult | None = None
 
-
     @property
     def is_alive(self) -> bool:
         return self._alive
@@ -40,7 +35,6 @@ class MCPClient:
         if self._init_result is not None and self._init_result.instructions:
             return self._init_result.instructions
         return ""
-
 
     async def connect(self) -> None:
         if self._alive:
@@ -55,9 +49,7 @@ class MCPClient:
             else:
                 read, write = await self._connect_http()
 
-            session = await self._stack.enter_async_context(
-                ClientSession(read, write)
-            )
+            session = await self._stack.enter_async_context(ClientSession(read, write))
             # 保存 InitializeResult，后续可从中提取 instructions
             self._init_result = await session.initialize()
             self._session = session
@@ -66,7 +58,6 @@ class MCPClient:
         except Exception:
             await self._cleanup_stack()
             raise
-
 
     async def _connect_stdio(self) -> tuple[Any, Any]:
         assert self._stack is not None
@@ -103,12 +94,10 @@ class MCPClient:
         read, write = result[0], result[1]
         return read, write
 
-
     async def list_tools(self) -> list[types.Tool]:
         assert self._session is not None
         result = await self._session.list_tools()
         return list(result.tools)
-
 
     async def call_tool(
         self, name: str, arguments: dict[str, Any]
@@ -127,7 +116,9 @@ class MCPClient:
                 await self._stack.__aexit__(None, None, None)
             except RuntimeError as e:
                 if "cancel scope" in str(e):
-                    logger.debug("Cancel scope cleanup (expected during shutdown): %s", e)
+                    logger.debug(
+                        "Cancel scope cleanup (expected during shutdown): %s", e
+                    )
                 else:
                     raise
             except Exception:

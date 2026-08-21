@@ -1,9 +1,5 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 """Slash Command 框架测试——registry、parser、补全、handler。"""
+
 from __future__ import annotations
 
 import asyncio
@@ -25,6 +21,7 @@ from mewcode.commands.registry import (
 # 测试夹具（Fixtures）
 # ---------------------------------------------------------------------------
 
+
 def _make_command(
     name: str,
     aliases: list[str] | None = None,
@@ -41,6 +38,7 @@ def _make_command(
         hidden=hidden,
         arg_prompt=arg_prompt,
     )
+
 
 class MockUI:
     def __init__(self) -> None:
@@ -63,6 +61,7 @@ class MockUI:
     def refresh_status(self) -> None:
         pass
 
+
 def _make_context(args: str = "", ui: MockUI | None = None) -> CommandContext:
     return CommandContext(
         args=args,
@@ -75,9 +74,11 @@ def _make_context(args: str = "", ui: MockUI | None = None) -> CommandContext:
         config={},
     )
 
+
 # ---------------------------------------------------------------------------
 # parse_command
 # ---------------------------------------------------------------------------
+
 
 class TestParseCommand:
     def test_normal_command(self) -> None:
@@ -127,9 +128,11 @@ class TestParseCommand:
         assert name == "session"
         assert args == "resume abc123"
 
+
 # ---------------------------------------------------------------------------
 # CommandRegistry
 # ---------------------------------------------------------------------------
+
 
 class TestCommandRegistry:
     def test_register_and_find(self) -> None:
@@ -189,9 +192,11 @@ class TestCommandRegistry:
         with pytest.raises(ValueError, match="conflicts"):
             await registry.register(_make_command("test"))
 
+
 # ---------------------------------------------------------------------------
 # complete
 # ---------------------------------------------------------------------------
+
 
 class TestComplete:
     def _build_registry(self) -> CommandRegistry:
@@ -243,9 +248,11 @@ class TestComplete:
         matches = complete(registry, "/sec")
         assert matches == []
 
+
 # ---------------------------------------------------------------------------
 # Handler 测试
 # ---------------------------------------------------------------------------
+
 
 class TestHelpHandler:
     @pytest.mark.asyncio
@@ -291,8 +298,8 @@ class TestHelpHandler:
         await handle_help(ctx)
         assert "未知命令" in ui.messages[0]
 
-class TestPlanDoHandlers:
 
+class TestPlanDoHandlers:
     @pytest.mark.asyncio
     async def test_plan_switches_mode(self) -> None:
         from mewcode.commands.handlers.plan import handle_plan
@@ -312,6 +319,7 @@ class TestPlanDoHandlers:
         await handle_plan(ctx)
         assert ui._plan_mode is True
         assert "设计登录模块" in ui.sent_messages
+
 
 class TestSkillHandler:
     @pytest.mark.asyncio
@@ -348,8 +356,8 @@ class TestSkillHandler:
         await handle_skill(ctx)
         assert "未知子命令" in ui.messages[0]
 
-class TestStatusHandler:
 
+class TestStatusHandler:
     @pytest.mark.asyncio
     async def test_status_output(self) -> None:
         from mewcode.commands.handlers.status import handle_status
@@ -372,6 +380,7 @@ class TestStatusHandler:
         await handle_status(ctx)
         assert "MewCode 状态" in ui.messages[0]
         assert "default" in ui.messages[0]
+
 
 class TestSessionHandler:
     @pytest.mark.asyncio
@@ -405,6 +414,7 @@ class TestSessionHandler:
         ctx.session_manager = MagicMock()
         await handle_session(ctx)
         assert "用法" in ui.messages[0]
+
 
 class TestMemoryHandler:
     @pytest.mark.asyncio
@@ -441,9 +451,11 @@ class TestMemoryHandler:
         await handle_memory(ctx)
         assert "未初始化" in ui.messages[0]
 
+
 # ---------------------------------------------------------------------------
 # 集成测试：register_all_commands
 # ---------------------------------------------------------------------------
+
 
 class TestRegisterAllCommands:
     def test_all_commands_registered(self) -> None:
@@ -454,9 +466,18 @@ class TestRegisterAllCommands:
         cmds = registry.list_commands()
         names = {c.name for c in cmds}
         expected = {
-            "help", "compact", "clear", "plan",
-            "session", "mcp", "memory", "permission",
-            "sandbox", "rewind", "status", "skill",
+            "help",
+            "compact",
+            "clear",
+            "plan",
+            "session",
+            "mcp",
+            "memory",
+            "permission",
+            "sandbox",
+            "rewind",
+            "status",
+            "skill",
         }
         assert names == expected
 

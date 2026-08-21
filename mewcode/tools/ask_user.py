@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import asyncio
@@ -29,8 +25,6 @@ class AskUserParams(BaseModel):
 
 
 class AskUserEvent:
-
-
     def __init__(
         self,
         questions: list[dict[str, Any]],
@@ -52,7 +46,6 @@ class AskUserTool(Tool):
     category: str = "read"
     is_system_tool = True
     should_defer = True
-
 
     def __init__(self) -> None:
         self._pending_event: AskUserEvent | None = None

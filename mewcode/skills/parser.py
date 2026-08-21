@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 from __future__ import annotations
 
 import logging
@@ -45,7 +41,7 @@ def parse_frontmatter(raw: str) -> tuple[dict, str]:
         raise SkillParseError("Unclosed YAML frontmatter (missing closing ---)")
 
     yaml_block = stripped[3:end]
-    body = stripped[end + 3:].lstrip("\n")
+    body = stripped[end + 3 :].lstrip("\n")
 
     try:
         meta = yaml.safe_load(yaml_block)
@@ -75,11 +71,15 @@ def _validate_meta(meta: dict, source: str = "") -> None:
 
     mode = meta.get("mode", "inline")
     if mode not in VALID_MODES:
-        raise SkillParseError(f"Invalid mode '{mode}'{ctx}: must be one of {VALID_MODES}")
+        raise SkillParseError(
+            f"Invalid mode '{mode}'{ctx}: must be one of {VALID_MODES}"
+        )
 
     context = meta.get("context", "full")
     if context not in VALID_CONTEXTS:
-        raise SkillParseError(f"Invalid context '{context}'{ctx}: must be one of {VALID_CONTEXTS}")
+        raise SkillParseError(
+            f"Invalid context '{context}'{ctx}: must be one of {VALID_CONTEXTS}"
+        )
 
 
 def parse_skill_file(path: Path) -> SkillDef:

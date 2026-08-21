@@ -1,8 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
-
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -28,4 +23,3 @@ class WorktreeSession:
     original_head_commit: str
     session_id: str = ""
     hook_based: bool = False
-

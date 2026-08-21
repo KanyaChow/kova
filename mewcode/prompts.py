@@ -1,7 +1,3 @@
-# 来源：公众号@小林coding
-# 后端八股网站：xiaolincoding.com
-# Agent网站：xiaolinnote.com
-# 简历模版：jianli.xiaolinnote.com
 """MewCode 的系统提示词（system prompt）构建。"""
 
 from __future__ import annotations
@@ -23,25 +19,24 @@ class PromptSection:
 @dataclass
 class EnvironmentContext:
     """运行环境上下文（对齐 Go 版 EnvironmentContext）。"""
+
     work_dir: str
-    os_name: str       # 操作系统名称（如 Linux, Darwin）
-    arch: str          # 架构（如 x86_64, arm64）
-    shell: str         # 当前 shell（如 /bin/bash）
+    os_name: str  # 操作系统名称（如 Linux, Darwin）
+    arch: str  # 架构（如 x86_64, arm64）
+    shell: str  # 当前 shell（如 /bin/bash）
     is_git_repo: bool  # 工作目录是否在 git 仓库内
-    git_branch: str    # 当前 git 分支（非 git 仓库时为空）
-    model: str         # 当前使用的模型名称
-    date: str          # 当前日期（YYYY-MM-DD）
+    git_branch: str  # 当前 git 分支（非 git 仓库时为空）
+    model: str  # 当前使用的模型名称
+    date: str  # 当前日期（YYYY-MM-DD）
 
 
 class PromptBuilder:
     def __init__(self) -> None:
         self._sections: list[PromptSection] = []
 
-
     def add(self, section: PromptSection) -> PromptBuilder:
         self._sections.append(section)
         return self
-
 
     def build(self) -> str:
         self._sections.sort(key=lambda s: s.priority)
@@ -174,13 +169,17 @@ def detect_environment(work_dir: str) -> EnvironmentContext:
     try:
         out = subprocess.run(
             ["git", "-C", work_dir, "rev-parse", "--is-inside-work-tree"],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         if out.returncode == 0 and out.stdout.strip() == "true":
             is_git = True
             br = subprocess.run(
                 ["git", "-C", work_dir, "rev-parse", "--abbrev-ref", "HEAD"],
-                capture_output=True, text=True, timeout=5,
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
             if br.returncode == 0:
                 branch = br.stdout.strip()
@@ -199,7 +198,9 @@ def detect_environment(work_dir: str) -> EnvironmentContext:
     )
 
 
-def environment_section(work_dir: str, env: EnvironmentContext | None = None) -> PromptSection:
+def environment_section(
+    work_dir: str, env: EnvironmentContext | None = None
+) -> PromptSection:
     """构建环境信息 prompt 段落（对齐 Go 版 EnvironmentSection）。"""
     if env is None:
         env = detect_environment(work_dir)
@@ -279,7 +280,11 @@ def build_plan_mode_exit_reminder(plan_path: str, plan_exists: bool) -> str:
     """退出 Plan Mode 时注入的提示，告知模型可以执行操作了。"""
     extra = ""
     if plan_exists:
-        extra = " The plan file is located at " + plan_path + " if you need to reference it."
+        extra = (
+            " The plan file is located at "
+            + plan_path
+            + " if you need to reference it."
+        )
     return _PLAN_MODE_EXIT_REMINDER.format(extra=extra)
 
 
@@ -290,9 +295,7 @@ def build_plan_mode_reentry_reminder(plan_path: str, plan_exists: bool) -> str:
     return _PLAN_MODE_REENTRY_REMINDER.format(plan_path=plan_path)
 
 
-def build_plan_mode_reminder(
-    plan_path: str, plan_exists: bool, iteration: int
-) -> str:
+def build_plan_mode_reminder(plan_path: str, plan_exists: bool, iteration: int) -> str:
     if plan_exists:
         plan_file_info = (
             f"Plan file: {plan_path}\n"
@@ -320,6 +323,7 @@ def build_plan_mode_reminder(
 # 对外接口
 # ---------------------------------------------------------------------------
 
+
 def build_system_prompt(
     hook_prompts: list[str] | None = None,
     coordinator_mode: bool = False,
@@ -331,6 +335,7 @@ def build_system_prompt(
 ) -> str:
     if coordinator_mode:
         from mewcode.teams.coordinator import get_coordinator_system_prompt
+
         return get_coordinator_system_prompt(agent_catalog=agent_catalog)
 
     b = PromptBuilder()
@@ -344,11 +349,13 @@ def build_system_prompt(
     b.add(environment_section(work_dir))
 
     if custom_instructions:
-        b.add(PromptSection(
-            name="CustomInstructions",
-            priority=80,
-            content=f"# Project Instructions\n\n{custom_instructions}",
-        ))
+        b.add(
+            PromptSection(
+                name="CustomInstructions",
+                priority=80,
+                content=f"# Project Instructions\n\n{custom_instructions}",
+            )
+        )
 
     if skill_section:
         b.add(PromptSection(name="Skills", priority=90, content=skill_section))
