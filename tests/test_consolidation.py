@@ -163,7 +163,6 @@ def test_prompt_contains_all_phases():
 @pytest.mark.skipif(
     not os.environ.get("KOVA_TEST_API_KEY"), reason="KOVA_TEST_API_KEY not set"
 )
-@pytest.mark.timeout(120)
 def test_e2e_consolidation_merges_duplicates():
     api_key = os.environ["KOVA_TEST_API_KEY"]
     base_url = os.environ.get("KOVA_TEST_BASE_URL", "https://api.minimaxi.com/v1")

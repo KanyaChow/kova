@@ -7,7 +7,9 @@ from __future__ import annotations
 
 import asyncio
 import shutil
-from unittest.mock import MagicMock
+import tempfile
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 from kova.teams.manager import TeamManager
 from kova.teams.models import resolve_team_dir
@@ -50,74 +52,80 @@ class FakeAgent:
         self._team_manager = None
 
 
-def cleanup(*names):
+def cleanup(*names, base_dir):
     for n in names:
-        d = resolve_team_dir(n)
+        d = base_dir / n
         if d.exists():
             shutil.rmtree(d, ignore_errors=True)
 
 
 def test_deleting_one_of_two_teams_should_not_restore_full_tools():
-    cleanup("coordbug1", "coordbug2")
-    try:
-        tm = TeamManager()
-        full_registry = make_registry("Agent", "WriteFile", "EditFile", "Bash")
-        agent = FakeAgent(full_registry)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        base_dir = Path(tmpdir)
+        cleanup("coordbug1", "coordbug2", base_dir=base_dir)
+        try:
+            with patch("kova.teams.manager.resolve_team_dir", side_effect=lambda name: base_dir / name):
+                tm = TeamManager()
+                full_registry = make_registry("Agent", "WriteFile", "EditFile", "Bash")
+                agent = FakeAgent(full_registry)
 
-        create = TeamCreateTool(
-            tm,
-            agent,
-            teammate_mode="in-process",
-            is_interactive=False,
-            enable_coordinator_mode=True,
-        )
-        r1 = asyncio.run(create.execute(TeamCreateParams(team_name="coordbug1")))
-        assert not r1.is_error
-        assert agent.coordinator_mode is True
-        restricted_names = {t.name for t in agent.registry.list_tools()}
-        assert "WriteFile" not in restricted_names
+                create = TeamCreateTool(
+                    tm,
+                    agent,
+                    teammate_mode="in-process",
+                    is_interactive=False,
+                    enable_coordinator_mode=True,
+                )
+                r1 = asyncio.run(create.execute(TeamCreateParams(team_name="coordbug1")))
+                assert not r1.is_error
+                assert agent.coordinator_mode is True
+                restricted_names = {t.name for t in agent.registry.list_tools()}
+                assert "WriteFile" not in restricted_names
 
-        r2 = asyncio.run(create.execute(TeamCreateParams(team_name="coordbug2")))
-        assert not r2.is_error
-        assert len(tm.list_teams()) == 2
+                r2 = asyncio.run(create.execute(TeamCreateParams(team_name="coordbug2")))
+                assert not r2.is_error
+                assert len(tm.list_teams()) == 2
 
-        delete = TeamDeleteTool(tm, agent)
-        r3 = asyncio.run(delete.execute(TeamDeleteParams(team_name="coordbug1")))
-        assert not r3.is_error
-        assert len(tm.list_teams()) == 1
+                delete = TeamDeleteTool(tm, agent)
+                r3 = asyncio.run(delete.execute(TeamDeleteParams(team_name="coordbug1")))
+                assert not r3.is_error
+                assert len(tm.list_teams()) == 1
 
-        names_after = {t.name for t in agent.registry.list_tools()}
-        assert agent.coordinator_mode is True
-        assert "WriteFile" not in names_after
-    finally:
-        cleanup("coordbug1", "coordbug2")
+                names_after = {t.name for t in agent.registry.list_tools()}
+                assert agent.coordinator_mode is True
+                assert "WriteFile" not in names_after
+        finally:
+            cleanup("coordbug1", "coordbug2", base_dir=base_dir)
 
 
 def test_second_team_create_does_not_corrupt_full_registry_snapshot():
-    cleanup("coordbug3", "coordbug4")
-    try:
-        tm = TeamManager()
-        full_registry = make_registry("Agent", "WriteFile", "EditFile", "Bash")
-        agent = FakeAgent(full_registry)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        base_dir = Path(tmpdir)
+        cleanup("coordbug3", "coordbug4", base_dir=base_dir)
+        try:
+            with patch("kova.teams.manager.resolve_team_dir", side_effect=lambda name: base_dir / name):
+                tm = TeamManager()
+                full_registry = make_registry("Agent", "WriteFile", "EditFile", "Bash")
+                agent = FakeAgent(full_registry)
 
-        create = TeamCreateTool(
-            tm,
-            agent,
-            teammate_mode="in-process",
-            is_interactive=False,
-            enable_coordinator_mode=True,
-        )
-        asyncio.run(create.execute(TeamCreateParams(team_name="coordbug3")))
-        asyncio.run(create.execute(TeamCreateParams(team_name="coordbug4")))
+                create = TeamCreateTool(
+                    tm,
+                    agent,
+                    teammate_mode="in-process",
+                    is_interactive=False,
+                    enable_coordinator_mode=True,
+                )
+                asyncio.run(create.execute(TeamCreateParams(team_name="coordbug3")))
+                asyncio.run(create.execute(TeamCreateParams(team_name="coordbug4")))
 
-        snapshot_names = {t.name for t in agent._full_registry.list_tools()}
-        assert "WriteFile" in snapshot_names
+                snapshot_names = {t.name for t in agent._full_registry.list_tools()}
+                assert "WriteFile" in snapshot_names
 
-        delete = TeamDeleteTool(tm, agent)
-        asyncio.run(delete.execute(TeamDeleteParams(team_name="coordbug3")))
-        asyncio.run(delete.execute(TeamDeleteParams(team_name="coordbug4")))
+                delete = TeamDeleteTool(tm, agent)
+                asyncio.run(delete.execute(TeamDeleteParams(team_name="coordbug3")))
+                asyncio.run(delete.execute(TeamDeleteParams(team_name="coordbug4")))
 
-        final_names = {t.name for t in agent.registry.list_tools()}
-        assert "WriteFile" in final_names
-    finally:
-        cleanup("coordbug3", "coordbug4")
+                final_names = {t.name for t in agent.registry.list_tools()}
+                assert "WriteFile" in final_names
+        finally:
+            cleanup("coordbug3", "coordbug4", base_dir=base_dir)
