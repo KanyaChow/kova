@@ -12,6 +12,7 @@ CLAUDE.md
 .claude/
 .cursor/
 .kova/
+exercises/
 
 # Playwright snapshot leaks
 example-com-snapshot.md
