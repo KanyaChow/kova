@@ -5,11 +5,11 @@ import os
 from kova.commands.registry import Command, CommandContext, CommandType
 
 
-VERSION = "v0.9.0"
+VERSION = "v0.2.0"
 
 
 async def handle_status(ctx: CommandContext) -> None:
-    lines = ["MewCode 状态", "─────────────"]
+    lines = ["Kova 状态", "─────────"]
 
     mode = ctx.agent.permission_mode.value if ctx.agent else "unknown"
     lines.append(f"模式: {mode}")
