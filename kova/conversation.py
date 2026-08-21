@@ -189,3 +189,56 @@ class ConversationManager:
 
     def get_messages(self) -> list[Message]:
         return list(self.history)
+
+    def validate_message_order(self) -> list[str]:
+        """验证消息顺序是否符合 tool_calls/tool_results 严格配对规则。
+
+        返回错误列表。空列表表示验证通过。
+
+        规则：
+        1. 每个 assistant 消息中的 tool_use 必须在后续 user 消息中有对应的 tool_result
+        2. tool_calls 和 tool_results 的 tool_use_id 必须严格匹配
+        3. tool_results 必须紧跟在对应 tool_calls 之后（中间不能有其他消息）
+        """
+        errors: list[str] = []
+        pending_tool_ids: dict[str, int] = {}  # tool_use_id -> 消息索引
+
+        for i, msg in enumerate(self.history):
+            if msg.role == "assistant":
+                for tu in msg.tool_uses:
+                    # 记录待匹配的 tool_use
+                    pending_tool_ids[tu.tool_use_id] = i
+
+            elif msg.role == "user":
+                if msg.tool_results:
+                    for tr in msg.tool_results:
+                        if tr.tool_use_id in pending_tool_ids:
+                            # 匹配成功，移除待处理项
+                            del pending_tool_ids[tr.tool_use_id]
+                        else:
+                            # 找不到对应的 tool_use
+                            errors.append(
+                                f"Message {i}: tool_result '{tr.tool_use_id}' "
+                                f"has no matching tool_use"
+                            )
+                elif msg.content:
+                    # user 消息包含纯文本内容，但有待匹配的 tool_ids
+                    if pending_tool_ids:
+                        pending_list = list(pending_tool_ids.keys())[:5]
+                        suffix = "..." if len(pending_tool_ids) > 5 else ""
+                        errors.append(
+                            f"Message {i}: user text content found while "
+                            f"{len(pending_tool_ids)} tool_result(s) are pending: "
+                            f"{', '.join(pending_list)}{suffix}"
+                        )
+
+        # 检查是否有未匹配的 tool_calls
+        if pending_tool_ids:
+            pending_list = list(pending_tool_ids.keys())[:5]
+            suffix = "..." if len(pending_tool_ids) > 5 else ""
+            errors.append(
+                f"End of conversation: {len(pending_tool_ids)} tool_use(s) "
+                f"have no corresponding tool_result: {', '.join(pending_list)}{suffix}"
+            )
+
+        return errors

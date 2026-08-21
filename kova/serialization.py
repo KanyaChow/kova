@@ -11,8 +11,18 @@ from kova.conversation import Message
 
 def build_anthropic_messages(messages: list[Message]) -> list[dict[str, Any]]:
     result: list[dict[str, Any]] = []
+    pending_tool_ids: set[str] = set()
+
     for m in messages:
         if m.tool_uses or m.thinking_blocks:
+            # 验证：所有待匹配的 tool_ids 必须已匹配
+            if pending_tool_ids:
+                raise ValueError(
+                    f"Serialization error: {len(pending_tool_ids)} pending tool_result(s) "
+                    f"missing before new assistant message with tool_calls. "
+                    f"Pending IDs: {list(pending_tool_ids)[:5]}"
+                )
+
             content: list[dict[str, Any]] = []
             for tb in m.thinking_blocks:
                 content.append(
@@ -33,12 +43,21 @@ def build_anthropic_messages(messages: list[Message]) -> list[dict[str, Any]]:
                         "input": tu.arguments,
                     }
                 )
+                # 记录待匹配的 tool_use_id
+                pending_tool_ids.add(tu.tool_use_id)
             if not content:
                 content.append({"type": "text", "text": ""})
             result.append({"role": "assistant", "content": content})
         elif m.tool_results:
             content = []
             for tr in m.tool_results:
+                # 验证 tool_use_id 存在且匹配
+                if tr.tool_use_id not in pending_tool_ids:
+                    raise ValueError(
+                        f"Serialization error: tool_result '{tr.tool_use_id}' "
+                        f"has no matching pending tool_use"
+                    )
+                pending_tool_ids.discard(tr.tool_use_id)
                 content.append(
                     {
                         "type": "tool_result",
@@ -51,6 +70,13 @@ def build_anthropic_messages(messages: list[Message]) -> list[dict[str, Any]]:
         else:
             # 合并连续的 user 纯文本消息（system-reminder 或普通 user 文本）。
             # 不合并到 tool_result 类型的 user 消息中（content 是 list）。
+            # 验证：如果有待匹配的 tool_ids，不能插入普通文本消息
+            if pending_tool_ids:
+                raise ValueError(
+                    f"Serialization error: {len(pending_tool_ids)} pending tool_result(s) "
+                    f"found before plain text message. "
+                    f"Pending IDs: {list(pending_tool_ids)[:5]}"
+                )
             if (
                 m.role == "user"
                 and result
@@ -60,13 +86,31 @@ def build_anthropic_messages(messages: list[Message]) -> list[dict[str, Any]]:
                 result[-1]["content"] = result[-1]["content"] + "\n" + m.content
             else:
                 result.append({"role": m.role, "content": m.content})
+
+    # 验证：所有 tool_call 必须都有对应的 tool_result
+    if pending_tool_ids:
+        raise ValueError(
+            f"Serialization error: {len(pending_tool_ids)} pending tool_result(s) "
+            f"at end of messages. "
+            f"Pending IDs: {list(pending_tool_ids)[:5]}"
+        )
+
     return result
 
 
 def build_openai_input(messages: list[Message]) -> list[dict[str, Any]]:
     result: list[dict[str, Any]] = []
+    pending_tool_ids: set[str] = set()
+
     for m in messages:
         if m.tool_uses:
+            # 验证：所有待匹配的 tool_ids 必须已匹配
+            if pending_tool_ids:
+                raise ValueError(
+                    f"Serialization error: {len(pending_tool_ids)} pending tool_result(s) "
+                    f"missing before new assistant message with tool_calls. "
+                    f"Pending IDs: {list(pending_tool_ids)[:5]}"
+                )
             # Responses API: thinking blocks 作为 reasoning item 回传。
             for tb in m.thinking_blocks or []:
                 result.append(
@@ -87,8 +131,17 @@ def build_openai_input(messages: list[Message]) -> list[dict[str, Any]]:
                         "arguments": json.dumps(tu.arguments),
                     }
                 )
+                # 记录待匹配的 tool_use_id
+                pending_tool_ids.add(tu.tool_use_id)
         elif m.tool_results:
             for tr in m.tool_results:
+                # 验证 tool_use_id 存在且匹配
+                if tr.tool_use_id not in pending_tool_ids:
+                    raise ValueError(
+                        f"Serialization error: tool_result '{tr.tool_use_id}' "
+                        f"has no matching pending tool_use"
+                    )
+                pending_tool_ids.discard(tr.tool_use_id)
                 result.append(
                     {
                         "type": "function_call_output",
@@ -97,6 +150,13 @@ def build_openai_input(messages: list[Message]) -> list[dict[str, Any]]:
                     }
                 )
         else:
+            # 验证：如果有待匹配的 tool_ids，不能插入普通文本消息
+            if pending_tool_ids:
+                raise ValueError(
+                    f"Serialization error: {len(pending_tool_ids)} pending tool_result(s) "
+                    f"found before plain text message. "
+                    f"Pending IDs: {list(pending_tool_ids)[:5]}"
+                )
             # 非 tool 的 assistant 消息也回传 reasoning。
             for tb in m.thinking_blocks or []:
                 result.append(
@@ -107,6 +167,15 @@ def build_openai_input(messages: list[Message]) -> list[dict[str, Any]]:
                     }
                 )
             result.append({"role": m.role, "content": m.content})
+
+    # 验证：所有 tool_call 必须都有对应的 tool_result
+    if pending_tool_ids:
+        raise ValueError(
+            f"Serialization error: {len(pending_tool_ids)} pending tool_result(s) "
+            f"at end of messages. "
+            f"Pending IDs: {list(pending_tool_ids)[:5]}"
+        )
+
     return result
 
 
@@ -119,6 +188,8 @@ def build_chat_completion_messages(messages: list[Message]) -> list[dict[str, An
     - thinking 块作为 reasoning_content 回传（DeepSeek/小米等 provider 要求）。
     """
     result: list[dict[str, Any]] = []
+    pending_tool_ids: set[str] = set()
+
     for m in messages:
         reasoning = (
             "".join(tb.thinking for tb in m.thinking_blocks)
@@ -127,6 +198,14 @@ def build_chat_completion_messages(messages: list[Message]) -> list[dict[str, An
         )
 
         if m.tool_uses:
+            # 验证：所有待匹配的 tool_ids 必须已匹配
+            if pending_tool_ids:
+                raise ValueError(
+                    f"Serialization error: {len(pending_tool_ids)} pending tool_result(s) "
+                    f"missing before new assistant message with tool_calls. "
+                    f"Pending IDs: {list(pending_tool_ids)[:5]}"
+                )
+
             tool_calls = []
             for tu in m.tool_uses:
                 tool_calls.append(
@@ -139,6 +218,8 @@ def build_chat_completion_messages(messages: list[Message]) -> list[dict[str, An
                         },
                     }
                 )
+                # 记录待匹配的 tool_use_id
+                pending_tool_ids.add(tu.tool_use_id)
             msg: dict[str, Any] = {
                 "role": "assistant",
                 "content": m.content or None,
@@ -149,6 +230,13 @@ def build_chat_completion_messages(messages: list[Message]) -> list[dict[str, An
             result.append(msg)
         elif m.tool_results:
             for tr in m.tool_results:
+                # 验证 tool_use_id 存在且匹配
+                if tr.tool_use_id not in pending_tool_ids:
+                    raise ValueError(
+                        f"Serialization error: tool_result '{tr.tool_use_id}' "
+                        f"has no matching pending tool_use"
+                    )
+                pending_tool_ids.discard(tr.tool_use_id)
                 result.append(
                     {
                         "role": "tool",
@@ -157,10 +245,26 @@ def build_chat_completion_messages(messages: list[Message]) -> list[dict[str, An
                     }
                 )
         else:
+            # 验证：如果有待匹配的 tool_ids，不能插入普通文本消息
+            if pending_tool_ids:
+                raise ValueError(
+                    f"Serialization error: {len(pending_tool_ids)} pending tool_result(s) "
+                    f"found before plain text message. "
+                    f"Pending IDs: {list(pending_tool_ids)[:5]}"
+                )
             msg = {"role": m.role, "content": m.content}
             if reasoning:
                 msg["reasoning_content"] = reasoning
             result.append(msg)
+
+    # 验证：所有 tool_call 必须都有对应的 tool_result
+    if pending_tool_ids:
+        raise ValueError(
+            f"Serialization error: {len(pending_tool_ids)} pending tool_result(s) "
+            f"at end of messages. "
+            f"Pending IDs: {list(pending_tool_ids)[:5]}"
+        )
+
     return result
 
 

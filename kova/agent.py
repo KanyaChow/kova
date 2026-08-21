@@ -819,6 +819,23 @@ class Agent:
             exit_plan_called = any(
                 tc.tool_name == "ExitPlanMode" for tc in response.tool_calls
             )
+
+            # 验证：tool_results 必须与 tool_uses 严格配对
+            expected_ids = {tc.tool_id for tc in response.tool_calls}
+            actual_ids = {tr.tool_use_id for tr in tool_results}
+            if expected_ids != actual_ids:
+                missing = expected_ids - actual_ids
+                extra = actual_ids - expected_ids
+                error_parts = []
+                if missing:
+                    error_parts.append(f"missing: {', '.join(list(missing)[:5])}")
+                if extra:
+                    error_parts.append(f"extra: {', '.join(list(extra)[:5])}")
+                raise ValueError(
+                    f"Tool results mismatch: {', '.join(error_parts)}. "
+                    f"Every tool_call must have exactly one corresponding tool_result."
+                )
+
             conversation.add_tool_results_message(tool_results)
 
             # 非阻塞 memory recall：工具执行完后检查 prefetch 是否就绪
