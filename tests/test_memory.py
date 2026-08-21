@@ -7,19 +7,19 @@ from pathlib import Path
 
 import pytest
 
-from mewcode.conversation import (
+from kova.conversation import (
     ConversationManager,
     Message,
     ToolResultBlock,
     ToolUseBlock,
 )
-from mewcode.memory.auto_memory import MemoryManager
-from mewcode.memory.instructions import (
+from kova.memory.auto_memory import MemoryManager
+from kova.memory.instructions import (
     MAX_INCLUDE_DEPTH,
     load_instructions,
     process_includes,
 )
-from mewcode.memory.session import (
+from kova.memory.session import (
     RecordType,
     ResumeResult,
     Session,
@@ -798,7 +798,7 @@ class TestConversationInjection:
         assert len(conv.history) == 2
         assert conv.history[0].content == "env info"
         assert "<system-reminder>" in conv.history[1].content
-        assert "mewcodeMd" in conv.history[1].content
+        assert "kovaMd" in conv.history[1].content
         assert "project rules" in conv.history[1].content
         assert "autoMemory" in conv.history[1].content
         assert "user prefs" in conv.history[1].content
@@ -816,7 +816,7 @@ class TestConversationInjection:
         conv.inject_long_term_memory("rules", "")
         assert len(conv.history) == 1
         assert "<system-reminder>" in conv.history[0].content
-        assert "mewcodeMd" in conv.history[0].content
+        assert "kovaMd" in conv.history[0].content
         assert "rules" in conv.history[0].content
 
     def test_inject_memories_only(self) -> None:
@@ -849,7 +849,7 @@ class TestConversationInjection:
 class TestMemoryExtraction:
     def test_memory_types_aligned_with_go(self, tmp_path: Path) -> None:
         """验证四种记忆类型与 Go 版一致。"""
-        from mewcode.memory.auto_memory import (
+        from kova.memory.auto_memory import (
             VALID_TYPES,
             _USER_LEVEL_TYPES,
             _PROJECT_LEVEL_TYPES,

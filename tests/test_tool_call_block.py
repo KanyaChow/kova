@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from mewcode.app import ToolCallBlock, _format_detail
+from kova.app import ToolCallBlock, _format_detail
 
 
 def test_format_detail_colors_edit_file_diff_lines():

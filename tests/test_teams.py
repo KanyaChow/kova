@@ -13,37 +13,37 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from mewcode.teams.models import (
+from kova.teams.models import (
     AgentTeam,
     BackendType,
     TeammateInfo,
     resolve_team_dir,
     unique_team_name,
 )
-from mewcode.teams.shared_task import SharedTask, SharedTaskStore
-from mewcode.teams.mailbox import Mailbox, MailboxMessage, create_message
-from mewcode.teams.registry import AgentNameRegistry
-from mewcode.teams.backend_detect import (
+from kova.teams.shared_task import SharedTask, SharedTaskStore
+from kova.teams.mailbox import Mailbox, MailboxMessage, create_message
+from kova.teams.registry import AgentNameRegistry
+from kova.teams.backend_detect import (
     BackendDetectionError,
     detect_backend,
     detect_backend_from_env,
     detect_pane_backend,
 )
-from mewcode.teams.coordinator import (
+from kova.teams.coordinator import (
     get_coordinator_system_prompt,
     get_coordinator_user_context,
     is_coordinator_mode,
     match_session_mode,
 )
-from mewcode.agents.tool_filter import (
+from kova.agents.tool_filter import (
     COORDINATOR_MODE_ALLOWED_TOOLS,
     IN_PROCESS_TEAMMATE_ALLOWED_TOOLS,
     TEAMMATE_COORDINATION_TOOLS,
     build_teammate_tools,
     apply_coordinator_filter,
 )
-from mewcode.tools import ToolRegistry
-from mewcode.tools.base import Tool, ToolResult
+from kova.tools import ToolRegistry
+from kova.tools.base import Tool, ToolResult
 
 # =====================================================================
 # 辅助工具
@@ -212,7 +212,7 @@ class TestModels:
         assert team.all_idle() is False
 
     def test_unique_team_name(self, tmp_dir):
-        with patch("mewcode.teams.models.Path.home", return_value=Path(tmp_dir)):
+        with patch("kova.teams.models.Path.home", return_value=Path(tmp_dir)):
             name1 = unique_team_name("my-team")
             assert name1 == "my-team"
             (Path(tmp_dir) / ".mewcode" / "teams" / "my-team").mkdir(parents=True)
@@ -430,7 +430,7 @@ class TestBackendDetect:
         env = self._clear_env()
         env["TMUX"] = "/tmp/tmux-1234/default,12345,0"
         with patch.dict(os.environ, env, clear=True):
-            with patch("mewcode.teams.backend_detect.sys.platform", "win32"):
+            with patch("kova.teams.backend_detect.sys.platform", "win32"):
                 assert detect_backend() == BackendType.IN_PROCESS
 
     def test_detect_backend_posix_tmux(self):
@@ -438,14 +438,14 @@ class TestBackendDetect:
         env = self._clear_env()
         env["TMUX"] = "/tmp/tmux-1234/default,12345,0"
         with patch.dict(os.environ, env, clear=True):
-            with patch("mewcode.teams.backend_detect.sys.platform", "linux"):
+            with patch("kova.teams.backend_detect.sys.platform", "linux"):
                 assert detect_backend() == BackendType.TMUX
 
     def test_detect_backend_posix_no_session(self):
         # 非 Windows 但不在任何会话里 → 进程内
         env = self._clear_env()
         with patch.dict(os.environ, env, clear=True):
-            with patch("mewcode.teams.backend_detect.sys.platform", "linux"):
+            with patch("kova.teams.backend_detect.sys.platform", "linux"):
                 assert detect_backend() == BackendType.IN_PROCESS
 
     def test_pane_backend_posix_iterm(self):
@@ -453,14 +453,14 @@ class TestBackendDetect:
         env = self._clear_env()
         env["ITERM_SESSION_ID"] = "w0t0p0:ABC-123"
         with patch.dict(os.environ, env, clear=True):
-            with patch("mewcode.teams.backend_detect.sys.platform", "darwin"):
+            with patch("kova.teams.backend_detect.sys.platform", "darwin"):
                 assert detect_pane_backend() == BackendType.ITERM2
 
     def test_pane_backend_no_session_falls_back(self):
         # 没有会话环境变量时静默回退进程内，而非抛异常
         env = self._clear_env()
         with patch.dict(os.environ, env, clear=True):
-            with patch("mewcode.teams.backend_detect.sys.platform", "linux"):
+            with patch("kova.teams.backend_detect.sys.platform", "linux"):
                 assert detect_pane_backend() == BackendType.IN_PROCESS
 
 
@@ -568,14 +568,14 @@ class TestCoordinatorMode:
 
 class TestConfigExtensions:
     def test_teammate_mode_defaults(self):
-        from mewcode.config import AppConfig
+        from kova.config import AppConfig
 
         cfg = AppConfig(providers=[])
         assert cfg.teammate_mode == ""
         assert cfg.enable_coordinator_mode is False
 
     def test_load_config_with_team_fields(self, tmp_dir):
-        from mewcode.config import load_config
+        from kova.config import load_config
 
         config_path = Path(tmp_dir) / "config.yaml"
         config_path.write_text(
@@ -592,7 +592,7 @@ class TestConfigExtensions:
         assert cfg.enable_coordinator_mode is True
 
     def test_invalid_teammate_mode(self, tmp_dir):
-        from mewcode.config import ConfigError, load_config
+        from kova.config import ConfigError, load_config
 
         config_path = Path(tmp_dir) / "config.yaml"
         config_path.write_text(
@@ -614,14 +614,14 @@ class TestConfigExtensions:
 
 class TestTranscript:
     def test_save_and_load(self, tmp_dir):
-        from mewcode.conversation import ConversationManager
-        from mewcode.teams.transcript import load_transcript, save_transcript
+        from kova.conversation import ConversationManager
+        from kova.teams.transcript import load_transcript, save_transcript
 
         conv = ConversationManager()
         conv.add_user_message("Hello agent")
         conv.add_assistant_message("Hello user")
 
-        with patch("mewcode.teams.models.Path.home", return_value=Path(tmp_dir)):
+        with patch("kova.teams.models.Path.home", return_value=Path(tmp_dir)):
             save_transcript("test-team", "agent-001", conv)
             restored = load_transcript("test-team", "agent-001")
 
@@ -632,9 +632,9 @@ class TestTranscript:
         assert restored.history[1].role == "assistant"
 
     def test_load_nonexistent(self, tmp_dir):
-        from mewcode.teams.transcript import load_transcript
+        from kova.teams.transcript import load_transcript
 
-        with patch("mewcode.teams.models.Path.home", return_value=Path(tmp_dir)):
+        with patch("kova.teams.models.Path.home", return_value=Path(tmp_dir)):
             result = load_transcript("no-team", "no-agent")
         assert result is None
 
@@ -646,7 +646,7 @@ class TestTranscript:
 
 class TestAgentCoordinatorIntegration:
     def test_normal_prompt(self):
-        from mewcode.prompts import build_system_prompt, IDENTITY_SECTION
+        from kova.prompts import build_system_prompt, IDENTITY_SECTION
 
         prompt = build_system_prompt()
         # 验证 identity section 内容包含在 prompt 中
@@ -654,13 +654,13 @@ class TestAgentCoordinatorIntegration:
         assert IDENTITY_SECTION.content[:30] in prompt
 
     def test_coordinator_prompt(self):
-        from mewcode.prompts import build_system_prompt
+        from kova.prompts import build_system_prompt
 
         prompt = build_system_prompt(coordinator_mode=True)
         assert "coordinator" in prompt.lower()
 
     def test_coordinator_mode_overrides_normal(self):
-        from mewcode.prompts import build_system_prompt
+        from kova.prompts import build_system_prompt
 
         # coordinator 模式走独立的 prompt 生成路径，不包含普通 identity 段
         prompt = build_system_prompt(coordinator_mode=True)

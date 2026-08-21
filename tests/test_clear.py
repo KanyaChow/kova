@@ -7,10 +7,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from mewcode.commands.registry import CommandContext, UIController
-from mewcode.commands.handlers.clear import handle_clear
-from mewcode.conversation import ConversationManager
-from mewcode.memory.session import SessionManager
+from kova.commands.registry import CommandContext, UIController
+from kova.commands.handlers.clear import handle_clear
+from kova.conversation import ConversationManager
+from kova.memory.session import SessionManager
 
 
 class MockUI:

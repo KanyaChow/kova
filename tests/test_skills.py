@@ -9,15 +9,15 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from mewcode.skills.parser import (
+from kova.skills.parser import (
     SkillDef,
     SkillParseError,
     parse_frontmatter,
     parse_skill_file,
     substitute_arguments,
 )
-from mewcode.skills.loader import SkillLoader
-from mewcode.tools import ToolRegistry
+from kova.skills.loader import SkillLoader
+from kova.tools import ToolRegistry
 
 # ---------------------------------------------------------------------------
 # 辅助工具
@@ -312,7 +312,7 @@ class TestSkillLoader:
 class TestLoadSkillTool:
     @pytest.mark.asyncio
     async def test_load_existing_skill(self) -> None:
-        from mewcode.tools.load_skill import LoadSkill, LoadSkillParams
+        from kova.tools.load_skill import LoadSkill, LoadSkillParams
 
         tool = LoadSkill()
         loader = MagicMock()
@@ -337,7 +337,7 @@ class TestLoadSkillTool:
 
     @pytest.mark.asyncio
     async def test_load_unknown_skill(self) -> None:
-        from mewcode.tools.load_skill import LoadSkill, LoadSkillParams
+        from kova.tools.load_skill import LoadSkill, LoadSkillParams
 
         tool = LoadSkill()
         loader = MagicMock()
@@ -354,7 +354,7 @@ class TestLoadSkillTool:
 
     @pytest.mark.asyncio
     async def test_not_initialized(self) -> None:
-        from mewcode.tools.load_skill import LoadSkill, LoadSkillParams
+        from kova.tools.load_skill import LoadSkill, LoadSkillParams
 
         tool = LoadSkill()
         result = await tool.execute(LoadSkillParams(name="test"))
@@ -362,7 +362,7 @@ class TestLoadSkillTool:
         assert "not properly initialized" in result.output
 
     def test_is_system_tool(self) -> None:
-        from mewcode.tools.load_skill import LoadSkill
+        from kova.tools.load_skill import LoadSkill
 
         tool = LoadSkill()
         assert tool.is_system_tool is True
@@ -376,7 +376,7 @@ class TestLoadSkillTool:
 
 class TestAgentSkillIntegration:
     def test_env_context_does_not_include_active_skills(self) -> None:
-        from mewcode.prompts import build_environment_context
+        from kova.prompts import build_environment_context
 
         env = build_environment_context(
             "/test",
@@ -391,7 +391,7 @@ class TestAgentSkillIntegration:
         agent = MagicMock()
         agent.active_skills = {}
 
-        from mewcode.agent import Agent
+        from kova.agent import Agent
 
         real_agent = MagicMock(spec=Agent)
         real_agent.active_skills = {}

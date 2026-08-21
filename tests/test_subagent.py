@@ -10,37 +10,37 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from mewcode.agents.parser import (
+from kova.agents.parser import (
     AgentDef,
     AgentParseError,
     parse_agent_file,
     parse_frontmatter,
 )
-from mewcode.agents.loader import AgentLoader
-from mewcode.agents.tool_filter import (
+from kova.agents.loader import AgentLoader
+from kova.agents.tool_filter import (
     ALL_AGENT_DISALLOWED_TOOLS,
     ASYNC_AGENT_ALLOWED_TOOLS,
     resolve_agent_tools,
 )
-from mewcode.agents.fork import (
+from kova.agents.fork import (
     FORK_BOILERPLATE_TAG,
     ForkError,
     build_forked_messages,
 )
-from mewcode.agents.trace import TraceManager, TraceNode
-from mewcode.agents.task_manager import BackgroundTask, TaskManager
-from mewcode.agents.notification import (
+from kova.agents.trace import TraceManager, TraceNode
+from kova.agents.task_manager import BackgroundTask, TaskManager
+from kova.agents.notification import (
     format_task_notification,
     inject_task_notifications,
 )
-from mewcode.conversation import (
+from kova.conversation import (
     ConversationManager,
     Message,
     ToolResultBlock,
     ToolUseBlock,
 )
-from mewcode.tools import ToolRegistry
-from mewcode.tools.base import Tool, ToolResult
+from kova.tools import ToolRegistry
+from kova.tools.base import Tool, ToolResult
 
 # =====================================================================
 # 辅助函数
@@ -697,7 +697,7 @@ class TestNotification:
 
 class TestConfig:
     def test_enable_fork_default(self, tmp_path: Path):
-        from mewcode.config import load_config
+        from kova.config import load_config
 
         cfg = tmp_path / "config.yaml"
         cfg.write_text(
@@ -714,7 +714,7 @@ class TestConfig:
         assert config.enable_verification_agent is False
 
     def test_enable_fork_true(self, tmp_path: Path):
-        from mewcode.config import load_config
+        from kova.config import load_config
 
         cfg = tmp_path / "config.yaml"
         cfg.write_text(
@@ -740,7 +740,7 @@ class TestConfig:
 
 class TestPermissionMode:
     def test_bypass_mode(self):
-        from mewcode.permissions.modes import PermissionMode, mode_decide
+        from kova.permissions.modes import PermissionMode, mode_decide
 
         assert PermissionMode.BYPASS.value == "bypassPermissions"
         assert mode_decide(PermissionMode.BYPASS, "read") == "allow"
@@ -755,7 +755,7 @@ class TestPermissionMode:
 
 class TestAgentToolParams:
     def test_required_fields(self):
-        from mewcode.tools.agent_tool import AgentToolParams
+        from kova.tools.agent_tool import AgentToolParams
 
         params = AgentToolParams(prompt="do this", description="test")
         assert params.prompt == "do this"
@@ -763,7 +763,7 @@ class TestAgentToolParams:
         assert params.run_in_background is False
 
     def test_optional_fields(self):
-        from mewcode.tools.agent_tool import AgentToolParams
+        from kova.tools.agent_tool import AgentToolParams
 
         params = AgentToolParams(
             prompt="do",
@@ -788,7 +788,7 @@ class TestAgentToolParams:
 
 class TestAgentExtensions:
     def test_agent_has_id(self):
-        from mewcode.agent import Agent
+        from kova.agent import Agent
 
         client = MagicMock()
         registry = ToolRegistry()
@@ -799,7 +799,7 @@ class TestAgentExtensions:
         assert agent.trace_id is None
 
     def test_agent_catalog(self):
-        from mewcode.agent import Agent
+        from kova.agent import Agent
 
         client = MagicMock()
         registry = ToolRegistry()

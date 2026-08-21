@@ -1,6 +1,6 @@
 """记忆治理 E2E 测试。
 
-需要环境变量 MEWCODE_TEST_API_KEY、MEWCODE_TEST_BASE_URL、MEWCODE_TEST_MODEL。
+需要环境变量 KOVA_TEST_API_KEY、KOVA_TEST_BASE_URL、KOVA_TEST_MODEL。
 运行：pytest tests/test_consolidation.py -v -s
 """
 
@@ -71,7 +71,7 @@ def setup_test_memories(mem_dir: str):
 
 
 def test_lock_first_acquire():
-    from mewcode.memory.consolidation import (
+    from kova.memory.consolidation import (
         _read_last_consolidated_at,
         _try_acquire_lock,
     )
@@ -90,7 +90,7 @@ def test_lock_first_acquire():
 
 
 def test_lock_blocks_when_held():
-    from mewcode.memory.consolidation import _try_acquire_lock
+    from kova.memory.consolidation import _try_acquire_lock
 
     with tempfile.TemporaryDirectory() as d:
         _try_acquire_lock(d)
@@ -99,7 +99,7 @@ def test_lock_blocks_when_held():
 
 
 def test_lock_reclaims_dead_pid():
-    from mewcode.memory.consolidation import _try_acquire_lock
+    from kova.memory.consolidation import _try_acquire_lock
 
     with tempfile.TemporaryDirectory() as d:
         lock_file = os.path.join(d, ".consolidate-lock")
@@ -109,7 +109,7 @@ def test_lock_reclaims_dead_pid():
 
 
 def test_lock_rollback_deletes_on_zero():
-    from mewcode.memory.consolidation import _try_acquire_lock, _rollback_lock
+    from kova.memory.consolidation import _try_acquire_lock, _rollback_lock
 
     with tempfile.TemporaryDirectory() as d:
         _try_acquire_lock(d)
@@ -119,7 +119,7 @@ def test_lock_rollback_deletes_on_zero():
 
 def test_lock_rollback_restores_mtime():
     import time
-    from mewcode.memory.consolidation import _try_acquire_lock, _rollback_lock
+    from kova.memory.consolidation import _try_acquire_lock, _rollback_lock
 
     with tempfile.TemporaryDirectory() as d:
         lock_file = os.path.join(d, ".consolidate-lock")
@@ -137,7 +137,7 @@ def test_lock_rollback_restores_mtime():
 
 
 def test_prompt_contains_all_phases():
-    from mewcode.memory.consolidation import _build_consolidation_prompt
+    from kova.memory.consolidation import _build_consolidation_prompt
 
     prompt = _build_consolidation_prompt("/mem", "/user/mem", "/sessions", ["s1", "s2"])
     for want in [
@@ -161,13 +161,13 @@ def test_prompt_contains_all_phases():
 
 
 @pytest.mark.skipif(
-    not os.environ.get("MEWCODE_TEST_API_KEY"), reason="MEWCODE_TEST_API_KEY not set"
+    not os.environ.get("KOVA_TEST_API_KEY"), reason="KOVA_TEST_API_KEY not set"
 )
 @pytest.mark.timeout(120)
 def test_e2e_consolidation_merges_duplicates():
-    api_key = os.environ["MEWCODE_TEST_API_KEY"]
-    base_url = os.environ.get("MEWCODE_TEST_BASE_URL", "https://api.minimaxi.com/v1")
-    model = os.environ.get("MEWCODE_TEST_MODEL", "MiniMax-M3")
+    api_key = os.environ["KOVA_TEST_API_KEY"]
+    base_url = os.environ.get("KOVA_TEST_BASE_URL", "https://api.minimaxi.com/v1")
+    model = os.environ.get("KOVA_TEST_MODEL", "MiniMax-M3")
 
     with tempfile.TemporaryDirectory() as work_dir:
         mem_dir = os.path.join(work_dir, ".mewcode", "memory")
@@ -181,20 +181,20 @@ def test_e2e_consolidation_merges_duplicates():
 
 
 async def _run_consolidation(work_dir, api_key, base_url, model, mem_dir):
-    from mewcode.memory.consolidation import _build_consolidation_prompt
-    from mewcode.agent import Agent
-    from mewcode.conversation import ConversationManager
-    from mewcode.permissions.checker import PermissionChecker
-    from mewcode.tools import ToolRegistry
-    from mewcode.tools.bash import Bash
-    from mewcode.tools.edit_file import EditFile
-    from mewcode.tools.glob import Glob
-    from mewcode.tools.grep import Grep
-    from mewcode.tools.read_file import ReadFile
-    from mewcode.tools.write_file import WriteFile
+    from kova.memory.consolidation import _build_consolidation_prompt
+    from kova.agent import Agent
+    from kova.conversation import ConversationManager
+    from kova.permissions.checker import PermissionChecker
+    from kova.tools import ToolRegistry
+    from kova.tools.bash import Bash
+    from kova.tools.edit_file import EditFile
+    from kova.tools.glob import Glob
+    from kova.tools.grep import Grep
+    from kova.tools.read_file import ReadFile
+    from kova.tools.write_file import WriteFile
 
-    from mewcode.config import ProviderConfig
-    from mewcode.client import OpenAICompatClient
+    from kova.config import ProviderConfig
+    from kova.client import OpenAICompatClient
 
     cfg = ProviderConfig(
         name="test",
@@ -210,10 +210,10 @@ async def _run_consolidation(work_dir, api_key, base_url, model, mem_dir):
     for tool_cls in [ReadFile, WriteFile, EditFile, Glob, Grep, Bash]:
         registry.register(tool_cls())
 
-    from mewcode.permissions.sandbox import PathSandbox
-    from mewcode.permissions.rules import RuleEngine
-    from mewcode.permissions.dangerous import DangerousCommandDetector
-    from mewcode.permissions.checker import PermissionMode
+    from kova.permissions.sandbox import PathSandbox
+    from kova.permissions.rules import RuleEngine
+    from kova.permissions.dangerous import DangerousCommandDetector
+    from kova.permissions.checker import PermissionMode
 
     sandbox = PathSandbox(mem_dir)
     checker = PermissionChecker(

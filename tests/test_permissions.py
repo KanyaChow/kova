@@ -10,7 +10,7 @@ from typing import Any, AsyncIterator
 import pytest
 import yaml
 
-from mewcode.agent import (
+from kova.agent import (
     Agent,
     ErrorEvent,
     LoopComplete,
@@ -22,9 +22,9 @@ from mewcode.agent import (
     TurnComplete,
     UsageEvent,
 )
-from mewcode.client import LLMClient
-from mewcode.conversation import ConversationManager
-from mewcode.permissions import (
+from kova.client import LLMClient
+from kova.conversation import ConversationManager
+from kova.permissions import (
     Decision,
     DangerousCommandDetector,
     PathSandbox,
@@ -36,8 +36,8 @@ from mewcode.permissions import (
     mode_decide,
     parse_rule,
 )
-from mewcode.tools import create_default_registry
-from mewcode.tools.base import StreamEnd, StreamEvent, TextDelta, ToolCallComplete
+from kova.tools import create_default_registry
+from kova.tools.base import StreamEnd, StreamEvent, TextDelta, ToolCallComplete
 
 # ===========================================================================
 # 第一层：DangerousCommandDetector（危险命令检测器）
@@ -317,7 +317,7 @@ class TestPermissionChecker:
         )
 
     def test_dangerous_command_denied(self) -> None:
-        from mewcode.tools.bash import Bash
+        from kova.tools.bash import Bash
 
         tool = Bash()
         d = self.checker.check(tool, {"command": "rm -rf /"})
@@ -325,7 +325,7 @@ class TestPermissionChecker:
         assert "危险命令" in d.reason
 
     def test_write_path_outside_sandbox_asks(self) -> None:
-        from mewcode.tools.write_file import WriteFile
+        from kova.tools.write_file import WriteFile
 
         tool = WriteFile()
         d = self.checker.check(tool, {"file_path": "/etc/passwd", "content": "x"})
@@ -333,7 +333,7 @@ class TestPermissionChecker:
         assert "沙箱" in d.reason
 
     def test_read_path_outside_sandbox_asks(self) -> None:
-        from mewcode.tools.read_file import ReadFile
+        from kova.tools.read_file import ReadFile
 
         tool = ReadFile()
         d = self.checker.check(tool, {"file_path": "/etc/passwd"})
@@ -341,7 +341,7 @@ class TestPermissionChecker:
         assert "沙箱" in d.reason
 
     def test_read_tool_allowed_by_default_mode(self) -> None:
-        from mewcode.tools.read_file import ReadFile
+        from kova.tools.read_file import ReadFile
 
         tool = ReadFile()
         test_file = self.tmpdir / "hello.txt"
@@ -350,7 +350,7 @@ class TestPermissionChecker:
         assert d.effect == "allow"
 
     def test_write_tool_asks_in_default_mode(self) -> None:
-        from mewcode.tools.write_file import WriteFile
+        from kova.tools.write_file import WriteFile
 
         tool = WriteFile()
         d = self.checker.check(
@@ -359,14 +359,14 @@ class TestPermissionChecker:
         assert d.effect == "ask"
 
     def test_bash_asks_in_default_mode(self) -> None:
-        from mewcode.tools.bash import Bash
+        from kova.tools.bash import Bash
 
         tool = Bash()
         d = self.checker.check(tool, {"command": "npm test"})
         assert d.effect == "ask"
 
     def test_plan_mode_asks_write(self) -> None:
-        from mewcode.tools.write_file import WriteFile
+        from kova.tools.write_file import WriteFile
 
         self.checker.mode = PermissionMode.PLAN
         tool = WriteFile()
@@ -376,7 +376,7 @@ class TestPermissionChecker:
         assert d.effect == "ask"
 
     def test_bypass_mode_allows_all(self) -> None:
-        from mewcode.tools.bash import Bash
+        from kova.tools.bash import Bash
 
         self.checker.mode = PermissionMode.BYPASS
         tool = Bash()
@@ -384,7 +384,7 @@ class TestPermissionChecker:
         assert d.effect == "allow"
 
     def test_bypass_still_blocks_dangerous(self) -> None:
-        from mewcode.tools.bash import Bash
+        from kova.tools.bash import Bash
 
         self.checker.mode = PermissionMode.BYPASS
         tool = Bash()
@@ -392,7 +392,7 @@ class TestPermissionChecker:
         assert d.effect == "deny"
 
     def test_rule_overrides_mode(self) -> None:
-        from mewcode.tools.bash import Bash
+        from kova.tools.bash import Bash
 
         tmpdir = Path(tempfile.mkdtemp())
         rules_file = tmpdir / "rules.yaml"
@@ -775,7 +775,7 @@ class TestSandboxAutoAllowRespectsDenyAsk:
             mode=PermissionMode.DEFAULT,
             sandbox_enabled=True,
         )
-        from mewcode.tools.bash import Bash
+        from kova.tools.bash import Bash
 
         tool = Bash()
         d = checker.check(tool, {"command": "echo ok && rm -rf /"})
@@ -798,7 +798,7 @@ class TestSandboxAutoAllowRespectsDenyAsk:
             mode=PermissionMode.DEFAULT,
             sandbox_enabled=True,
         )
-        from mewcode.tools.bash import Bash
+        from kova.tools.bash import Bash
 
         tool = Bash()
         d = checker.check(tool, {"command": "go test ./..."})
@@ -821,7 +821,7 @@ class TestSandboxAutoAllowRespectsDenyAsk:
             mode=PermissionMode.DEFAULT,
             sandbox_enabled=True,
         )
-        from mewcode.tools.bash import Bash
+        from kova.tools.bash import Bash
 
         tool = Bash()
         d = checker.check(tool, {"command": "git push origin main"})
