@@ -1,4 +1,4 @@
-"""MewCode 的配置校验逻辑。"""
+"""Kova 的配置校验逻辑。"""
 
 from __future__ import annotations
 

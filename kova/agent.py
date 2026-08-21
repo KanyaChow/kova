@@ -382,10 +382,7 @@ class Agent:
     def _transcript_path(self) -> str:
         if self.session_id:
             return str(
-                Path(self.work_dir)
-                / ".kova"
-                / "sessions"
-                / f"{self.session_id}.jsonl"
+                Path(self.work_dir) / ".kova" / "sessions" / f"{self.session_id}.jsonl"
             )
         return ""
 

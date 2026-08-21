@@ -21,10 +21,10 @@ def shell_quote(s: str) -> str:
 def build_teammate_cli(team_name: str, member_name: str, workdir: str = "") -> str:
     """构造在新终端窗格/标签里把本进程拉起为“队友 worker 模式”的 shell 命令。
 
-    对齐 Go 的 BuildTeammateCLI：用 sys.executable + `-m mewcode` 复用当前
+    对齐 Go 的 BuildTeammateCLI：用 sys.executable + `-m kova` 复用当前
     Python 解释器和包，产出形如：
 
-        cd <workdir> && <python> -m mewcode --teammate --team-name <t> --agent-name <n>
+        cd <workdir> && <python> -m kova --teammate --team-name <t> --agent-name <n>
 
     workdir 控制 spawn 出来的进程在哪个目录运行；传空则回退到 lead 的当前目录，
     这样邮箱路径能解析成同一个位置（worktree 隔离时传非空的 worktree 路径）。
@@ -35,7 +35,7 @@ def build_teammate_cli(team_name: str, member_name: str, workdir: str = "") -> s
     python = sys.executable or "python"
     return (
         f"cd {shell_quote(workdir)} && "
-        f"{shell_quote(python)} -m mewcode --teammate "
+        f"{shell_quote(python)} -m kova --teammate "
         f"--team-name {shell_quote(team_name)} "
         f"--agent-name {shell_quote(member_name)}"
     )

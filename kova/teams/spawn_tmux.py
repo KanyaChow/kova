@@ -36,7 +36,7 @@ def spawn_tmux_teammate(
 ) -> TmuxPaneInfo:
     """在新的 tmux 窗口里跑起队友 worker，对齐 Go 的 spawnTmuxTeammate。
 
-    cli_command 由 build_teammate_cli 产出（cd 到工作目录后 `-m mewcode --teammate`）。
+    cli_command 由 build_teammate_cli 产出（cd 到工作目录后 `-m kova --teammate`）。
     用 new-window（而非 split 分屏）为每个队友开一个独立窗口，窗口名为 team-member。
     """
     window_name = f"{team_name}-{member_name}"

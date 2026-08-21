@@ -37,10 +37,8 @@ class WorktreeManager:
     ) -> None:
         self.repo_root = repo_root
         self.symlink_directories = symlink_directories or []
-        self.worktree_dir = worktree_dir or str(
-            Path(repo_root) / ".kova" / "worktrees"
-        )
-        self._mewcode_dir = Path(repo_root) / ".kova"
+        self.worktree_dir = worktree_dir or str(Path(repo_root) / ".kova" / "worktrees")
+        self._kova_dir = Path(repo_root) / ".kova"
         self._lock = asyncio.Lock()
         self.active: dict[str, Worktree] = {}
         self.current_session: WorktreeSession | None = None
@@ -192,7 +190,7 @@ class WorktreeManager:
             original_head_commit=original_head,
         )
         self.current_session = session
-        save_worktree_session(self._mewcode_dir, session)
+        save_worktree_session(self._kova_dir, session)
         return session
 
     # ------------------------------------------------------------------
@@ -219,7 +217,7 @@ class WorktreeManager:
                 )
 
         self.current_session = None
-        save_worktree_session(self._mewcode_dir, None)
+        save_worktree_session(self._kova_dir, None)
 
         if action == "remove":
             await self._remove_worktree(name, wt)
@@ -271,13 +269,13 @@ class WorktreeManager:
     # ------------------------------------------------------------------
 
     def restore_session(self) -> WorktreeSession | None:
-        session = load_worktree_session(self._mewcode_dir)
+        session = load_worktree_session(self._kova_dir)
         if session is None:
             return None
         wt_path = session.worktree_path
         head_sha = self.read_worktree_head_sha(wt_path)
         if head_sha is None:
-            save_worktree_session(self._mewcode_dir, None)
+            save_worktree_session(self._kova_dir, None)
             return None
 
         wt = Worktree(

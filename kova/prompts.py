@@ -1,4 +1,4 @@
-"""MewCode 的系统提示词（system prompt）构建。"""
+"""Kova 的系统提示词（system prompt）构建。"""
 
 from __future__ import annotations
 
@@ -52,7 +52,7 @@ IDENTITY_SECTION = PromptSection(
     name="Identity",
     priority=0,
     content=(
-        "You are MewCode, an AI programming assistant running in the terminal. "
+        "You are Kova, an AI programming assistant running in the terminal. "
         "You help users with software engineering tasks including writing code, "
         "debugging, refactoring, explaining code, and running commands.\n\n"
         "IMPORTANT: Be careful not to introduce security vulnerabilities such as "

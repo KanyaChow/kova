@@ -675,7 +675,7 @@ class KovaApp(App):
     CSS_PATH = "styles.tcss"
     TITLE = "Kova"
     INLINE_PADDING = 0
-    theme = "mewcode"
+    theme = "kova"
     BINDINGS = [
         Binding("ctrl+c", "handle_ctrl_c", "Quit", priority=True),
         Binding("escape", "cancel", "Cancel", priority=True),

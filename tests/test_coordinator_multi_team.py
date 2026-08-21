@@ -64,7 +64,10 @@ def test_deleting_one_of_two_teams_should_not_restore_full_tools():
         base_dir = Path(tmpdir)
         cleanup("coordbug1", "coordbug2", base_dir=base_dir)
         try:
-            with patch("kova.teams.manager.resolve_team_dir", side_effect=lambda name: base_dir / name):
+            with patch(
+                "kova.teams.manager.resolve_team_dir",
+                side_effect=lambda name: base_dir / name,
+            ):
                 tm = TeamManager()
                 full_registry = make_registry("Agent", "WriteFile", "EditFile", "Bash")
                 agent = FakeAgent(full_registry)
@@ -76,18 +79,24 @@ def test_deleting_one_of_two_teams_should_not_restore_full_tools():
                     is_interactive=False,
                     enable_coordinator_mode=True,
                 )
-                r1 = asyncio.run(create.execute(TeamCreateParams(team_name="coordbug1")))
+                r1 = asyncio.run(
+                    create.execute(TeamCreateParams(team_name="coordbug1"))
+                )
                 assert not r1.is_error
                 assert agent.coordinator_mode is True
                 restricted_names = {t.name for t in agent.registry.list_tools()}
                 assert "WriteFile" not in restricted_names
 
-                r2 = asyncio.run(create.execute(TeamCreateParams(team_name="coordbug2")))
+                r2 = asyncio.run(
+                    create.execute(TeamCreateParams(team_name="coordbug2"))
+                )
                 assert not r2.is_error
                 assert len(tm.list_teams()) == 2
 
                 delete = TeamDeleteTool(tm, agent)
-                r3 = asyncio.run(delete.execute(TeamDeleteParams(team_name="coordbug1")))
+                r3 = asyncio.run(
+                    delete.execute(TeamDeleteParams(team_name="coordbug1"))
+                )
                 assert not r3.is_error
                 assert len(tm.list_teams()) == 1
 
@@ -103,7 +112,10 @@ def test_second_team_create_does_not_corrupt_full_registry_snapshot():
         base_dir = Path(tmpdir)
         cleanup("coordbug3", "coordbug4", base_dir=base_dir)
         try:
-            with patch("kova.teams.manager.resolve_team_dir", side_effect=lambda name: base_dir / name):
+            with patch(
+                "kova.teams.manager.resolve_team_dir",
+                side_effect=lambda name: base_dir / name,
+            ):
                 tm = TeamManager()
                 full_registry = make_registry("Agent", "WriteFile", "EditFile", "Bash")
                 agent = FakeAgent(full_registry)
