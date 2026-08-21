@@ -268,8 +268,8 @@ def _validate_skill_name(name: str) -> None:
 
 
 def user_skills_root() -> Path:
-    """返回 ~/.mewcode/skills，不存在则自动创建。"""
-    root = Path.home() / ".mewcode" / "skills"
+    """返回 ~/.kova/skills，不存在则自动创建。"""
+    root = Path.home() / ".kova" / "skills"
     root.mkdir(parents=True, exist_ok=True)
     return root
 

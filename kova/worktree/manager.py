@@ -38,9 +38,9 @@ class WorktreeManager:
         self.repo_root = repo_root
         self.symlink_directories = symlink_directories or []
         self.worktree_dir = worktree_dir or str(
-            Path(repo_root) / ".mewcode" / "worktrees"
+            Path(repo_root) / ".kova" / "worktrees"
         )
-        self._mewcode_dir = Path(repo_root) / ".mewcode"
+        self._mewcode_dir = Path(repo_root) / ".kova"
         self._lock = asyncio.Lock()
         self.active: dict[str, Worktree] = {}
         self.current_session: WorktreeSession | None = None

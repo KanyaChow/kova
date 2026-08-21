@@ -124,12 +124,12 @@ class AgentTeam:
 
 def resolve_team_dir(team_name: str) -> Path:
     slug = _sanitize_name(team_name)
-    return Path.home() / ".mewcode" / "teams" / slug
+    return Path.home() / ".kova" / "teams" / slug
 
 
 def unique_team_name(team_name: str) -> str:
     slug = _sanitize_name(team_name)
-    base_dir = Path.home() / ".mewcode" / "teams"
+    base_dir = Path.home() / ".kova" / "teams"
     if not (base_dir / slug).exists():
         return slug
     counter = 2

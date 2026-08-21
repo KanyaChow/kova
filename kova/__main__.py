@@ -22,12 +22,12 @@ def main() -> None:
         asyncio.run(_run_teammate(*teammate))
         return
 
-    # 先确保 .mewcode/ 目录存在，否则下面写 debug.log 会因目录不存在而崩溃
-    Path(".mewcode").mkdir(parents=True, exist_ok=True)
+    # 先确保 .kova/ 目录存在，否则下面写 debug.log 会因目录不存在而崩溃
+    Path(".kova").mkdir(parents=True, exist_ok=True)
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(name)s %(message)s",
-        filename=".mewcode/debug.log",
+        filename=".kova/debug.log",
         filemode="w",
     )
 
@@ -173,9 +173,9 @@ async def _run_prompt(
         detector=DangerousCommandDetector(),
         sandbox=PathSandbox(work_dir),
         rule_engine=RuleEngine(
-            user_rules_path=home / ".mewcode" / "permissions.yaml",
-            project_rules_path=Path(work_dir) / ".mewcode" / "permissions.yaml",
-            local_rules_path=Path(work_dir) / ".mewcode" / "permissions.local.yaml",
+            user_rules_path=home / ".kova" / "permissions.yaml",
+            project_rules_path=Path(work_dir) / ".kova" / "permissions.yaml",
+            local_rules_path=Path(work_dir) / ".kova" / "permissions.local.yaml",
         ),
         mode=permission_mode,
     )

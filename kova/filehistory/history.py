@@ -27,7 +27,7 @@ class Snapshot:
 
 class FileHistory:
     def __init__(self, base_dir: str, session_id: str) -> None:
-        self._session_dir = Path(base_dir) / ".mewcode" / "file-history" / session_id
+        self._session_dir = Path(base_dir) / ".kova" / "file-history" / session_id
         self._session_dir.mkdir(parents=True, exist_ok=True)
         self._tracked: dict[str, int] = {}
         self._snapshots: list[Snapshot] = []

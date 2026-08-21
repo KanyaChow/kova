@@ -21,7 +21,7 @@ class InstallSkillParams(BaseModel):
 
 
 class InstallSkillTool(Tool):
-    """从 URL 下载并安装 skill 到用户全局目录 (~/.mewcode/skills/)。
+    """从 URL 下载并安装 skill 到用户全局目录 (~/.kova/skills/)。
 
     支持 skills.sh、GitHub tree、raw.githubusercontent.com 三种 URL 格式。
     安装完成后自动刷新 catalog，新 skill 可通过 /<name> 或 LoadSkill 直接使用。
@@ -30,7 +30,7 @@ class InstallSkillTool(Tool):
     name = "InstallSkill"
     description = (
         "Download and install a Skill from a URL into the user-global skills directory "
-        "(~/.mewcode/skills/). Supports skills.sh URLs (https://www.skills.sh/<owner>/<repo>/<name>), "
+        "(~/.kova/skills/). Supports skills.sh URLs (https://www.skills.sh/<owner>/<repo>/<name>), "
         "GitHub tree URLs (https://github.com/<owner>/<repo>/tree/<ref>/<path>), and raw "
         "SKILL.md URLs. After install the Skill becomes available via /<name> and LoadSkill. "
         "Call this when the user pastes a Skill URL and asks to install it."

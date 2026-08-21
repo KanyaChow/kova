@@ -10,8 +10,8 @@ from kova.skills.parser import SkillDef, SkillParseError, parse_skill_file
 
 log = logging.getLogger(__name__)
 
-PROJECT_SKILLS_DIR = ".mewcode/skills"
-USER_SKILLS_DIR = "~/.mewcode/skills"
+PROJECT_SKILLS_DIR = ".kova/skills"
+USER_SKILLS_DIR = "~/.kova/skills"
 
 
 class SkillLoader:

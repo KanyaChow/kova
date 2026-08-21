@@ -383,7 +383,7 @@ class Agent:
         if self.session_id:
             return str(
                 Path(self.work_dir)
-                / ".mewcode"
+                / ".kova"
                 / "sessions"
                 / f"{self.session_id}.jsonl"
             )
@@ -453,7 +453,7 @@ class Agent:
             "pulse",
             "shore",
         ]
-        plans_dir = Path(self.work_dir) / ".mewcode" / "plans"
+        plans_dir = Path(self.work_dir) / ".kova" / "plans"
         plans_dir.mkdir(parents=True, exist_ok=True)
         ts = datetime.datetime.now().strftime("%m%d-%H%M")
         slug = f"{random.choice(_ADJECTIVES)}-{random.choice(_NOUNS)}-{ts}"

@@ -229,9 +229,9 @@ class RemoteServer:
             detector=DangerousCommandDetector(),
             sandbox=PathSandbox(work_dir),
             rule_engine=RuleEngine(
-                user_rules_path=home / ".mewcode" / "permissions.yaml",
-                project_rules_path=Path(work_dir) / ".mewcode" / "permissions.yaml",
-                local_rules_path=Path(work_dir) / ".mewcode" / "permissions.local.yaml",
+                user_rules_path=home / ".kova" / "permissions.yaml",
+                project_rules_path=Path(work_dir) / ".kova" / "permissions.yaml",
+                local_rules_path=Path(work_dir) / ".kova" / "permissions.local.yaml",
             ),
             mode=PermissionMode.DEFAULT,
         )

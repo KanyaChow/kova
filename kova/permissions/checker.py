@@ -153,7 +153,7 @@ class PermissionChecker:
 
     def _is_plan_file(self, target_path: str) -> bool:
         if not self.plan_file_path or not target_path:
-            return ".mewcode/plans/" in target_path
+            return ".kova/plans/" in target_path
         try:
             abs_target = os.path.abspath(target_path)
             abs_plan = os.path.abspath(self.plan_file_path)
@@ -163,4 +163,4 @@ class PermissionChecker:
             pass
         if os.path.basename(target_path) == os.path.basename(self.plan_file_path):
             return True
-        return ".mewcode/plans/" in target_path
+        return ".kova/plans/" in target_path

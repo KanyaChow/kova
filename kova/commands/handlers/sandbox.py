@@ -98,8 +98,8 @@ def _enable_sandbox(ctx: CommandContext, auto_allow: bool) -> None:
     config = SandboxConfig(
         allow_write=[work_dir, "/tmp"],
         deny_write=[
-            f"{work_dir}/.mewcode/config.yaml",
-            f"{work_dir}/.mewcode/permissions.local.yaml",
+            f"{work_dir}/.kova/config.yaml",
+            f"{work_dir}/.kova/permissions.local.yaml",
         ],
         network_enabled=False,
     )

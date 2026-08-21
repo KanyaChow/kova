@@ -16,7 +16,7 @@ from kova.conversation import (
     ToolUseBlock,
 )
 
-SESSIONS_DIR = ".mewcode/sessions"
+SESSIONS_DIR = ".kova/sessions"
 DEFAULT_MAX_AGE_DAYS = 30
 TITLE_MAX_LENGTH = 50
 

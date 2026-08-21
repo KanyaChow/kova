@@ -163,7 +163,7 @@ class TestSkillLoader:
         assert "backend-interview" not in skills
 
     def test_project_overrides_builtin(self, tmp_path: Path) -> None:
-        skills_dir = tmp_path / ".mewcode" / "skills"
+        skills_dir = tmp_path / ".kova" / "skills"
         skills_dir.mkdir(parents=True)
         custom = skills_dir / "commit.md"
         custom.write_text(
@@ -202,7 +202,7 @@ class TestSkillLoader:
         assert loader.get("nonexistent") is None
 
     def test_hot_reload(self, tmp_path: Path) -> None:
-        skills_dir = tmp_path / ".mewcode" / "skills"
+        skills_dir = tmp_path / ".kova" / "skills"
         skills_dir.mkdir(parents=True)
         f = skills_dir / "custom.md"
         f.write_text(
@@ -232,7 +232,7 @@ class TestSkillLoader:
         assert "v2" in skill.prompt_body
 
     def test_hot_reload_fallback_on_error(self, tmp_path: Path) -> None:
-        skills_dir = tmp_path / ".mewcode" / "skills"
+        skills_dir = tmp_path / ".kova" / "skills"
         skills_dir.mkdir(parents=True)
         f = skills_dir / "custom.md"
         f.write_text(
@@ -253,7 +253,7 @@ class TestSkillLoader:
         assert skill.description == "good"
 
     def test_directory_skill_detected(self, tmp_path: Path) -> None:
-        skills_dir = tmp_path / ".mewcode" / "skills"
+        skills_dir = tmp_path / ".kova" / "skills"
         skill_dir = skills_dir / "my-skill"
         skill_dir.mkdir(parents=True)
         skill_md = skill_dir / "SKILL.md"
@@ -277,7 +277,7 @@ class TestSkillLoader:
         assert loader.get_source_label("nonexistent") == "unknown"
 
     def test_malformed_file_skipped(self, tmp_path: Path) -> None:
-        skills_dir = tmp_path / ".mewcode" / "skills"
+        skills_dir = tmp_path / ".kova" / "skills"
         skills_dir.mkdir(parents=True)
         bad = skills_dir / "broken.md"
         bad.write_text("not valid frontmatter")

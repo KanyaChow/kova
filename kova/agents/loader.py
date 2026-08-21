@@ -8,8 +8,8 @@ from kova.agents.parser import AgentDef, AgentParseError, parse_agent_file
 
 log = logging.getLogger(__name__)
 
-PROJECT_AGENTS_DIR = ".mewcode/agents"
-USER_AGENTS_DIR = "~/.mewcode/agents"
+PROJECT_AGENTS_DIR = ".kova/agents"
+USER_AGENTS_DIR = "~/.kova/agents"
 
 
 class AgentLoader:

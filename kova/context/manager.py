@@ -44,7 +44,7 @@ MIN_SUMMARIZE_PREFIX_TOKENS = 2_000
 
 PERSISTED_TAG = "<persisted-output>"
 
-SESSION_SUBDIR = ".mewcode/session/tool-results"
+SESSION_SUBDIR = ".kova/session/tool-results"
 
 
 # ---------------------------------------------------------------------------

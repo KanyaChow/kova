@@ -7,9 +7,9 @@ from pathlib import Path
 class PathSandbox:
     # 默认禁写路径：这些文件包含敏感配置，不允许 Agent 直接修改
     _DEFAULT_DENY_WRITE: list[str] = [
-        ".mewcode/config.yaml",
-        ".mewcode/permissions.local.yaml",
-        ".mewcode/skills/",
+        ".kova/config.yaml",
+        ".kova/permissions.local.yaml",
+        ".kova/skills/",
     ]
 
     def __init__(

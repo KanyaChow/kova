@@ -160,9 +160,9 @@ def load_instructions(project_root: str) -> str:
     """发现并拼接项目和用户指令文件（对齐 Go 版 LoadInstructions）。
 
     发现顺序（低优先级在前，高优先级在后）：
-    1. 用户全局：~/.mewcode/MEWCODE.md, ~/.mewcode/AGENTS.md
+    1. 用户全局：~/.kova/MEWCODE.md, ~/.kova/AGENTS.md
     2. 项目目录链：从 git root 到 workDir，每个目录的 MEWCODE.md 和 AGENTS.md
-    3. workDir/.mewcode/INSTRUCTIONS.md（遗留格式）
+    3. workDir/.kova/INSTRUCTIONS.md（遗留格式）
     4. workDir/MEWCODE.local.md（本地覆盖）
     """
     root = Path(project_root).resolve()
@@ -198,8 +198,8 @@ def load_instructions(project_root: str) -> str:
         sources.append((label, content.rstrip("\n")))
 
     # 1. 用户全局
-    _add(home / ".mewcode" / "MEWCODE.md")
-    _add(home / ".mewcode" / "AGENTS.md")
+    _add(home / ".kova" / "MEWCODE.md")
+    _add(home / ".kova" / "AGENTS.md")
 
     # 2. 项目目录链
     for d in _project_instruction_dirs(root):
@@ -207,7 +207,7 @@ def load_instructions(project_root: str) -> str:
         _add(d / "AGENTS.md")
 
     # 3. 遗留格式
-    _add(root / ".mewcode" / "INSTRUCTIONS.md")
+    _add(root / ".kova" / "INSTRUCTIONS.md")
 
     # 4. 本地覆盖
     _add(root / "MEWCODE.local.md")

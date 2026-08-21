@@ -43,7 +43,7 @@ _FRONTMATTER_RE = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 
 
 def get_auto_mem_path(project_root: str) -> str:
-    """返回项目级记忆目录路径：<projectRoot>/.mewcode/memory/。
+    """返回项目级记忆目录路径：<projectRoot>/.kova/memory/。
 
     保留尾部分隔符，确保前缀匹配不会误命中类似 memoryxyz 的路径。
     支持 KOVA_REMOTE_MEMORY_DIR 环境变量覆盖。
@@ -52,11 +52,11 @@ def get_auto_mem_path(project_root: str) -> str:
     if override:
         return override.rstrip(os.sep) + os.sep
     abs_root = os.path.abspath(project_root)
-    return os.path.join(abs_root, ".mewcode", "memory") + os.sep
+    return os.path.join(abs_root, ".kova", "memory") + os.sep
 
 
 def get_user_auto_mem_path() -> str:
-    """返回用户级记忆目录路径：~/.mewcode/memory/。
+    """返回用户级记忆目录路径：~/.kova/memory/。
 
     用于存储 type=user / type=feedback 的记忆，跨项目跟随用户。
     如果 HOME 无法解析则返回空字符串。
@@ -67,7 +67,7 @@ def get_user_auto_mem_path() -> str:
         return ""
     if not home:
         return ""
-    return os.path.join(home, ".mewcode", "memory") + os.sep
+    return os.path.join(home, ".kova", "memory") + os.sep
 
 
 def is_auto_mem_path(absolute_path: str, project_root: str) -> bool:
@@ -311,9 +311,9 @@ class MemoryManager:
     def __init__(self, project_root: str) -> None:
         abs_root = os.path.abspath(project_root)
         self._project_root = abs_root
-        # 用户级：~/.mewcode/memory/ — user/feedback 类型记忆
+        # 用户级：~/.kova/memory/ — user/feedback 类型记忆
         self._user_mem_dir = get_user_auto_mem_path()
-        # 项目级：<projectRoot>/.mewcode/memory/ — project/reference 类型记忆
+        # 项目级：<projectRoot>/.kova/memory/ — project/reference 类型记忆
         self._mem_dir = get_auto_mem_path(abs_root)
         self._last_extraction_msg_count = 0
 
@@ -322,7 +322,7 @@ class MemoryManager:
         """用户级 MEMORY.md 的路径（兼容旧接口）。"""
         if self._user_mem_dir:
             return Path(os.path.join(self._user_mem_dir, ENTRYPOINT_NAME))
-        return Path.home() / ".mewcode" / "memory" / ENTRYPOINT_NAME
+        return Path.home() / ".kova" / "memory" / ENTRYPOINT_NAME
 
     @property
     def project_path(self) -> Path:
@@ -331,16 +331,16 @@ class MemoryManager:
 
     @property
     def user_mem_dir(self) -> Path:
-        """用户级记忆目录（~/.mewcode/memory/）。"""
+        """用户级记忆目录（~/.kova/memory/）。"""
         return (
             Path(self._user_mem_dir.rstrip(os.sep))
             if self._user_mem_dir
-            else Path.home() / ".mewcode" / "memory"
+            else Path.home() / ".kova" / "memory"
         )
 
     @property
     def project_mem_dir(self) -> Path:
-        """项目级记忆目录（<project>/.mewcode/memory/）。"""
+        """项目级记忆目录（<project>/.kova/memory/）。"""
         return Path(self._mem_dir.rstrip(os.sep))
 
     def load(self) -> str:
