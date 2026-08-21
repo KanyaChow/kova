@@ -166,16 +166,14 @@ class TestSkillLoader:
         skills_dir = tmp_path / ".kova" / "skills"
         skills_dir.mkdir(parents=True)
         custom = skills_dir / "commit.md"
-        custom.write_text(
-            textwrap.dedent("""\
+        custom.write_text(textwrap.dedent("""\
             ---
             name: commit
             description: Custom commit
             mode: inline
             ---
             Custom prompt
-        """)
-        )
+        """))
         loader = SkillLoader(str(tmp_path))
         skills = loader.load_all()
         assert skills["commit"].description == "Custom commit"
@@ -205,28 +203,24 @@ class TestSkillLoader:
         skills_dir = tmp_path / ".kova" / "skills"
         skills_dir.mkdir(parents=True)
         f = skills_dir / "custom.md"
-        f.write_text(
-            textwrap.dedent("""\
+        f.write_text(textwrap.dedent("""\
             ---
             name: custom
             description: v1
             ---
             Prompt v1
-        """)
-        )
+        """))
         loader = SkillLoader(str(tmp_path))
         loader.load_all()
         assert loader.get("custom").description == "v1"
 
-        f.write_text(
-            textwrap.dedent("""\
+        f.write_text(textwrap.dedent("""\
             ---
             name: custom
             description: v2
             ---
             Prompt v2
-        """)
-        )
+        """))
         skill = loader.get("custom")
         assert skill.description == "v2"
         assert "v2" in skill.prompt_body
@@ -235,15 +229,13 @@ class TestSkillLoader:
         skills_dir = tmp_path / ".kova" / "skills"
         skills_dir.mkdir(parents=True)
         f = skills_dir / "custom.md"
-        f.write_text(
-            textwrap.dedent("""\
+        f.write_text(textwrap.dedent("""\
             ---
             name: custom
             description: good
             ---
             Good prompt
-        """)
-        )
+        """))
         loader = SkillLoader(str(tmp_path))
         loader.load_all()
 
@@ -257,15 +249,13 @@ class TestSkillLoader:
         skill_dir = skills_dir / "my-skill"
         skill_dir.mkdir(parents=True)
         skill_md = skill_dir / "SKILL.md"
-        skill_md.write_text(
-            textwrap.dedent("""\
+        skill_md.write_text(textwrap.dedent("""\
             ---
             name: my-skill
             description: A directory skill
             ---
             SOP here
-        """)
-        )
+        """))
         loader = SkillLoader(str(tmp_path))
         skills = loader.load_all()
         assert "my-skill" in skills
@@ -282,15 +272,13 @@ class TestSkillLoader:
         bad = skills_dir / "broken.md"
         bad.write_text("not valid frontmatter")
         good = skills_dir / "valid.md"
-        good.write_text(
-            textwrap.dedent("""\
+        good.write_text(textwrap.dedent("""\
             ---
             name: valid
             description: Works fine
             ---
             Prompt
-        """)
-        )
+        """))
         loader = SkillLoader(str(tmp_path))
         skills = loader.load_all()
         assert "valid" in skills

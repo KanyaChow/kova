@@ -23,7 +23,6 @@ from kova.context.manager import (
     reconstruct_replacement_state,
 )
 
-
 __all__ = [
     "CompactBoundary",
     "CompactCircuitBreaker",

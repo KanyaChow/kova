@@ -4,7 +4,6 @@ import os
 
 from kova.commands.registry import Command, CommandContext, CommandType
 
-
 VERSION = "v0.2.0"
 
 

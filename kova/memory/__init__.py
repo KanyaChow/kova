@@ -27,7 +27,6 @@ from kova.memory.session import (
     validate_message_chain,
 )
 
-
 __all__ = [
     "ENTRYPOINT_NAME",
     "MemoryFile",

@@ -3,7 +3,6 @@ from __future__ import annotations
 from kova.commands.registry import Command, CommandContext, CommandType
 from kova.permissions import PermissionMode
 
-
 _MODE_NAMES = {m.value: m for m in PermissionMode}
 
 

@@ -152,7 +152,9 @@ class TestValidateMessageOrder:
                     tool_use_id="tu-1", tool_name="Bash", arguments={"command": "ls"}
                 ),
                 ToolUseBlock(
-                    tool_use_id="tu-2", tool_name="ReadFile", arguments={"path": "a.txt"}
+                    tool_use_id="tu-2",
+                    tool_name="ReadFile",
+                    arguments={"path": "a.txt"},
                 ),
                 ToolUseBlock(
                     tool_use_id="tu-3", tool_name="Glob", arguments={"pattern": "*.py"}

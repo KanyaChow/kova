@@ -5,7 +5,6 @@ from typing import Literal
 
 from kova.tools.base import ToolCategory
 
-
 DecisionEffect = Literal["allow", "deny", "ask"]
 
 

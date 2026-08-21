@@ -302,9 +302,11 @@ def apply_tool_result_budget(
         # Pass 2：聚合超限
         remaining = [tr for tr in fresh if tr.tool_use_id not in persisted_p1]
         total = sum(
-            len(state.replacements[tr.tool_use_id])
-            if tr.tool_use_id in state.replacements
-            else len(tr.content)
+            (
+                len(state.replacements[tr.tool_use_id])
+                if tr.tool_use_id in state.replacements
+                else len(tr.content)
+            )
             for tr in msg.tool_results
             if tr.tool_use_id
             not in [

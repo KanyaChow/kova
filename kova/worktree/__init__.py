@@ -10,7 +10,6 @@ from kova.worktree.models import Worktree, WorktreeSession
 from kova.worktree.session import load_worktree_session, save_worktree_session
 from kova.worktree.slug import flatten_slug, validate_slug
 
-
 __all__ = [
     "Changes",
     "CleanupResult",

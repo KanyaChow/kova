@@ -25,7 +25,6 @@ from kova.tools.base import (
     ToolCallStart,
 )
 
-
 # 限制自动拉取模型元数据的超时时间，防止慢响应或挂起的
 # /v1/models 端点拖延启动。超时后降级为 None（即"未知"），
 # 由下一层 context window 解析逻辑接管。

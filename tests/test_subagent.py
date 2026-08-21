@@ -700,15 +700,13 @@ class TestConfig:
         from kova.config import load_config
 
         cfg = tmp_path / "config.yaml"
-        cfg.write_text(
-            textwrap.dedent("""\
+        cfg.write_text(textwrap.dedent("""\
         providers:
           - name: test
             protocol: anthropic
             base_url: https://api.example.com
             model: claude-3
-        """)
-        )
+        """))
         config = load_config(cfg)
         assert config.enable_fork is False
         assert config.enable_verification_agent is False
@@ -717,8 +715,7 @@ class TestConfig:
         from kova.config import load_config
 
         cfg = tmp_path / "config.yaml"
-        cfg.write_text(
-            textwrap.dedent("""\
+        cfg.write_text(textwrap.dedent("""\
         providers:
           - name: test
             protocol: anthropic
@@ -726,8 +723,7 @@ class TestConfig:
             model: claude-3
         enable_fork: true
         enable_verification_agent: true
-        """)
-        )
+        """))
         config = load_config(cfg)
         assert config.enable_fork is True
         assert config.enable_verification_agent is True

@@ -4,7 +4,6 @@ from kova.permissions.modes import DecisionEffect, PermissionMode, mode_decide
 from kova.permissions.rules import Rule, RuleEngine, extract_content, parse_rule
 from kova.permissions.sandbox import PathSandbox
 
-
 __all__ = [
     "Decision",
     "DecisionEffect",

@@ -9,7 +9,6 @@ from kova.agents.notification import (
     inject_task_notifications,
 )
 
-
 __all__ = [
     "AgentDef",
     "AgentParseError",

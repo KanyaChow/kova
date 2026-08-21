@@ -10,7 +10,6 @@ from kova.teams.progress import TeammateProgress, ToolActivity
 from kova.teams.registry import AgentNameRegistry
 from kova.teams.shared_task import SharedTask, SharedTaskStore
 
-
 __all__ = [
     "AgentTeam",
     "AgentNameRegistry",

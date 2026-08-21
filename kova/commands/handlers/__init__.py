@@ -14,7 +14,6 @@ from kova.commands.handlers.rewind import REWIND_COMMAND
 from kova.commands.handlers.status import STATUS_COMMAND
 from kova.commands.registry import CommandRegistry
 
-
 ALL_COMMANDS = [
     HELP_COMMAND,
     COMPACT_COMMAND,

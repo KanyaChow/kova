@@ -9,7 +9,6 @@ from kova.commands.registry import (
     UIController,
 )
 
-
 __all__ = [
     "Command",
     "CommandContext",

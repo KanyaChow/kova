@@ -246,7 +246,9 @@ You:
 
   SendMessage({ to: "agent-a1b", message: "Fix the null pointer in src/auth/validate.py:42. Add a null check before accessing user.id — if null, return 401. Commit and report the hash." })
 
-  Fix is in progress.""".replace("__AGENT_TYPES__", agent_lines)
+  Fix is in progress.""".replace(
+        "__AGENT_TYPES__", agent_lines
+    )
 
 
 def get_coordinator_user_context(
