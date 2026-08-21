@@ -757,7 +757,7 @@ class KovaApp(App):
     def _make_banner(model: str = "", work_dir: str = "") -> RichText:
         t = RichText()
         t.append(" /\\_/\\    ", style="bold color(214)")
-        t.append("Kova v0.1.0 \n", style="color(229)")
+        t.append("Kova  v0.1.0\n", style="color(229)")
         t.append(" (o.o)   ", style="bold color(214)")
         t.append(f" {model}\n" if model else "\n", style="color(229)")
         t.append(" (> <)    ", style="bold color(214)")

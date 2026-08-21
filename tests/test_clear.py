@@ -26,18 +26,18 @@ class MockUI:
 
 class MockAgent:
     def __init__(self, work_dir: str) -> None:
-        self._work_dir = work_dir
+        self.work_dir = work_dir
         self._loop_count = 5
         self.total_input_tokens = 12345
         self.total_output_tokens = 6789
         self.file_history = None
         self.session_id = "old-session"
-        self._active_skills: dict[str, str] = {"test": "body"}
+        self.active_skills: dict[str, str] = {"test": "body"}
         self.registry = MagicMock()
         self.registry.list_tools.return_value = []
 
     def clear_active_skills(self) -> None:
-        self._active_skills.clear()
+        self.active_skills.clear()
 
 
 @pytest.mark.asyncio
@@ -112,7 +112,7 @@ async def test_clear_resets_loop_count_and_skills(tmp_path) -> None:
     sm = SessionManager(tmpdir)
     session = sm.create()
     agent = MockAgent(tmpdir)
-    agent._active_skills = {"skill1": "body1"}
+    agent.active_skills = {"skill1": "body1"}
 
     ctx = CommandContext(
         args="",
@@ -132,4 +132,4 @@ async def test_clear_resets_loop_count_and_skills(tmp_path) -> None:
     await handle_clear(ctx)
 
     assert agent._loop_count == 0, "loop count 应归零"
-    assert len(agent._active_skills) == 0, "active skills 应清空"
+    assert len(agent.active_skills) == 0, "active skills 应清空"

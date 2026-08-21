@@ -16,7 +16,7 @@ async def handle_clear(ctx: CommandContext) -> None:
         if ctx.agent:
             from kova.filehistory import FileHistory
 
-            file_history = FileHistory(ctx.agent._work_dir, new_session.session_id)
+            file_history = FileHistory(ctx.agent.work_dir, new_session.session_id)
             ctx.agent.file_history = file_history
             for tool in ctx.agent.registry.list_tools():
                 if hasattr(tool, "file_history"):
